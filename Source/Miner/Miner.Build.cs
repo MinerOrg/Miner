@@ -17,8 +17,15 @@ public class Miner : ModuleRules
 			"AIModule",
 			"StateTreeModule",
 			"GameplayStateTreeModule",
-			"UMG"
-		});
+			"UMG",
+			/* The next 4 lines are for the dynamic terrain */
+			// For procedural components (UProceduralMeshComponent)
+			"ProceduralMeshComponent",
+			// For dynamic mesh types
+			"GeometryFramework",
+			"GeometryCore",
+            "DynamicMesh"
+        });
 
 		PrivateDependencyModuleNames.AddRange(new string[] { });
 
