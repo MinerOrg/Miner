@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "DynamicMeshActor.h"
+#include "FastNoiseLite.h"
+#include "DynamicMesh/DynamicMesh3.h"
 #include "WorldLandscape.generated.h"
 
 /**
@@ -16,9 +18,15 @@ class MINER_API AWorldLandscape : public ADynamicMeshActor
 	
 	AWorldLandscape();
 
+public:
+	//TObjectPtr<FDynamicMesh3> Mesh;
+	
+
+	//TObjectPtr<FastNoiseLite> Noise;
+
 protected:
 	
 
 private:
-	//UFastNoiseGenerator* Noise;
+	
 };
