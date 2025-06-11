@@ -24,7 +24,9 @@ public class Miner : ModuleRules
 			// For dynamic mesh types
 			"GeometryFramework",
 			"GeometryCore",
-            "DynamicMesh"
+            "DynamicMesh",
+			// Noise Generator (from Fab)
+			"FastNoiseGenerator"
         });
 
 		PrivateDependencyModuleNames.AddRange(new string[] { });

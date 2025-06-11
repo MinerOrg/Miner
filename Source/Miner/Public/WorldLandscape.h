@@ -14,4 +14,11 @@ class MINER_API AWorldLandscape : public ADynamicMeshActor
 {
 	GENERATED_BODY()
 	
+	AWorldLandscape();
+
+protected:
+	
+
+private:
+	//UFastNoiseGenerator* Noise;
 };
