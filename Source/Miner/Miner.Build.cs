@@ -18,15 +18,11 @@ public class Miner : ModuleRules
 			"StateTreeModule",
 			"GameplayStateTreeModule",
 			"UMG",
-			/* The next 4 lines are for the dynamic terrain */
-			// For procedural components (UProceduralMeshComponent)
-			"ProceduralMeshComponent",
-			// For dynamic mesh types
+			/* The next 3 lines are for the dynamic terrain */
+			// For dynamic mesh stuff
 			"GeometryFramework",
 			"GeometryCore",
             "DynamicMesh",
-			// Noise Generator (from Fab)
-			"FastNoiseGenerator"
         });
 
 		PrivateDependencyModuleNames.AddRange(new string[] { });
