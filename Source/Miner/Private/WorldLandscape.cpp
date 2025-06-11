@@ -3,3 +3,9 @@
 
 #include "WorldLandscape.h"
 
+AWorldLandscape::AWorldLandscape()
+{
+	// Set variables
+
+	
+}
