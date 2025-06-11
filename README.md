@@ -6,6 +6,6 @@ I'm going to try to have
 * AI
 * maybe have good performance
 
-#Problems
-# Git has a limit on how many lfs files you can upload via git
-* solution: don't use git?
+# Problems
+* Git has a limit on how many lfs files you can upload via git
+    * solution: don't use git?
