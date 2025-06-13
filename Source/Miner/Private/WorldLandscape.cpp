@@ -2,11 +2,6 @@
 
 #include "MinerGamemode.h"
 #include "Kismet/GameplayStatics.h"
-#include "DynamicMeshBuilder.h"
-#include "DynamicMesh3.h"
-#include "DynamicMeshAttributeSet.h"
-#include "DynamicMeshNormals.h"
-#include "DynamicMeshUVOverlay.h"
 #include "WorldLandscape.h"
 
 AWorldLandscape::AWorldLandscape()

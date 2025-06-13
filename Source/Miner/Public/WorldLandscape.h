@@ -3,13 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "MinerGamemode.h"	// Game mode reference
 #include "DynamicMeshActor.h"	// Dynamic mesh stuff
 #include "DynamicMeshBuilder.h"    // Dynamic mesh stuff
 #include "FastNoiseLite.h"	// Noise generation library
 #include "WorldLandscape.generated.h"	// Generated header
 
 /**
- * 
+ * TERRAIN CLASS
  */
 UCLASS()
 class MINER_API AWorldLandscape : public ADynamicMeshActor
@@ -20,9 +21,10 @@ class MINER_API AWorldLandscape : public ADynamicMeshActor
 
 public:
 	
-	TObjectPtr<FastNoiseLite> Noise;
+	FastNoiseLite* Noise;
 
 protected:
+	// Helper Functions
 	void LoadTerrainFromSave();
 
 private:
@@ -35,8 +37,10 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Terrain")
 	FastNoiseLite::FractalType NoiseFractalType = FastNoiseLite::FractalType_FBm;*/
 
-	AMinerGameMode* GameMode;
+	// References to other stuff
+	TObjectPtr<AMinerGameMode> GameMode = nullptr;
 
+	// Dynamic mesh
 	TObjectPtr<UDynamicMeshComponent> DynamicMeshComponent;
 	
 };
