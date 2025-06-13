@@ -3,10 +3,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "DynamicMeshActor.h"
-#include "FastNoiseLite.h"
-#include "DynamicMesh/DynamicMesh3.h"
-#include "WorldLandscape.generated.h"
+#include "DynamicMeshActor.h"	// Dynamic mesh stuff
+#include "DynamicMeshBuilder.h"    // Dynamic mesh stuff
+#include "FastNoiseLite.h"	// Noise generation library
+#include "WorldLandscape.generated.h"	// Generated header
 
 /**
  * 
@@ -19,14 +19,24 @@ class MINER_API AWorldLandscape : public ADynamicMeshActor
 	AWorldLandscape();
 
 public:
-	//TObjectPtr<FDynamicMesh3> Mesh;
 	
-
-	//TObjectPtr<FastNoiseLite> Noise;
+	TObjectPtr<FastNoiseLite> Noise;
 
 protected:
-	
+	void LoadTerrainFromSave();
 
 private:
+	// Noise parameters
+	UPROPERTY(EditAnywhere, Category = "Terrain")
+	float NoiseFrequencey = 0.03f;
+	/* Turns out you can't find the noise type because it is not just one type, so I'll just set it to perlin
+	UPROPERTY(EditAnywhere, Category = "Terrain")
+	FastNoiseLite::NoiseType NoiseType = FastNoiseLite::NoiseType_Perlin;
+	UPROPERTY(EditAnywhere, Category = "Terrain")
+	FastNoiseLite::FractalType NoiseFractalType = FastNoiseLite::FractalType_FBm;*/
+
+	AMinerGameMode* GameMode;
+
+	TObjectPtr<UDynamicMeshComponent> DynamicMeshComponent;
 	
 };
