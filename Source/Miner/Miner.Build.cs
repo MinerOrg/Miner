@@ -25,7 +25,10 @@ public class Miner : ModuleRules
             "DynamicMesh",
         });
 
-		PrivateDependencyModuleNames.AddRange(new string[] { });
+		PrivateDependencyModuleNames.AddRange(new string[] {
+            "OnlineSubsystem", // For online features
+            "GeometryScriptingCore",
+    });
 
 		PublicIncludePaths.AddRange(new string[] {
 			"Miner",
@@ -33,12 +36,6 @@ public class Miner : ModuleRules
 			"Miner/Variant_Shooter",
 			"Miner/Variant_Shooter/AI"
 		});
-
-		// Uncomment if you are using Slate UI
-		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
-
-		// Uncomment if you are using online features
-		PrivateDependencyModuleNames.Add("OnlineSubsystem");
 
 		// To include OnlineSubsystemSteam, add it to the plugins section in your uproject file with the Enabled attribute set to true
 	}
