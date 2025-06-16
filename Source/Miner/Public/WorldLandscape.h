@@ -31,14 +31,13 @@ private:
 	// Noise parameters
 	UPROPERTY(EditAnywhere, Category = "Terrain")
 	float NoiseFrequencey = 0.03f;
-	/* Turns out you can't find the noise type because it is not just one type, so I'll just set it to perlin
 	UPROPERTY(EditAnywhere, Category = "Terrain")
-	FastNoiseLite::NoiseType NoiseType = FastNoiseLite::NoiseType_Perlin;
+	FastNoiseLite::NoiseType NoiseNoiseType = FastNoiseLite::NoiseType_Perlin;
 	UPROPERTY(EditAnywhere, Category = "Terrain")
-	FastNoiseLite::FractalType NoiseFractalType = FastNoiseLite::FractalType_FBm;*/
+	FastNoiseLite::FractalType NoiseFractalType = FastNoiseLite::FractalType_FBm;
 
 	// References to other stuff
-	TObjectPtr<AMinerGameMode> GameMode = nullptr;
+	TObjectPtr<AMinerGameMode> GameMode;
 
 	// Dynamic mesh
 	TObjectPtr<UDynamicMeshComponent> DynamicMeshComponent;
