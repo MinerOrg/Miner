@@ -26,7 +26,14 @@ void AWorldLandscape::BeginPlay()
 {
 	Super::BeginPlay();
 
+	/*
+	* Set noise parameters
+	*/
 
+	Noise->SetSeed(GameMode->Seed);
+	Noise->SetFrequency(NoiseFrequencey);
+	Noise->SetNoiseType(StaticCast<FastNoiseLite::NoiseType>(NoiseNoiseType));
+	Noise->SetFractalType(StaticCast<FastNoiseLite::FractalType>(NoiseFractalType));
 }
 
 /*
@@ -35,9 +42,5 @@ void AWorldLandscape::BeginPlay()
 
 void AWorldLandscape::LoadTerrainFromSave()
 {
-	// Set noise parameters
-	Noise->SetSeed(GameMode->Seed);
-	Noise->SetFrequency(NoiseFrequencey);
-	Noise->SetNoiseType(StaticCast<FastNoiseLite::NoiseType>(NoiseNoiseType));
-	Noise->SetFractalType(StaticCast<FastNoiseLite::FractalType>(NoiseFractalType));
+
 }
