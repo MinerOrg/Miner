@@ -24,17 +24,45 @@ public:
 	FastNoiseLite* Noise;
 
 protected:
-	// Helper Functions
+	/*
+	* Overriden functions
+	*/
+
+	virtual void BeginPlay() override;
+
+	/*
+	* Helper functions
+	*/
+
 	void LoadTerrainFromSave();
 
 private:
-	// Noise parameters
+	/*
+	* Noise parameters
+	*/
+
 	UPROPERTY(EditAnywhere, Category = "Terrain")
 	float NoiseFrequencey = 0.03f;
 	UPROPERTY(EditAnywhere, Category = "Terrain")
-	FastNoiseLite::NoiseType NoiseNoiseType = FastNoiseLite::NoiseType_Perlin;
+	/*
+	* 1 = NoiseType_OpenSimplex2
+    * 2 = NoiseType_OpenSimplex2S
+    * 3 = NoiseType_Cellular
+    * 4 = NoiseType_Perlin
+    * 5 = NoiseType_ValueCubic
+	* 6 = NoiseType_Value
+	*/
+	int NoiseNoiseType = FastNoiseLite::NoiseType_Perlin;
 	UPROPERTY(EditAnywhere, Category = "Terrain")
-	FastNoiseLite::FractalType NoiseFractalType = FastNoiseLite::FractalType_FBm;
+	/*
+	* 1 = FractalType_None
+    * 2 = FractalType_FBm
+    * 3 = FractalType_Ridged
+    * 4 = FractalType_PingPong
+    * 5 = FractalType_DomainWarpProgressive
+    * 6 = FractalType_DomainWarpIndependent
+	*/
+	int NoiseFractalType = FastNoiseLite::FractalType_FBm;
 
 	// References to other stuff
 	TObjectPtr<AMinerGameMode> GameMode;

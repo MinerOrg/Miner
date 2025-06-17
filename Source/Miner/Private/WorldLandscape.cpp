@@ -8,21 +8,36 @@
 #include "DynamicMesh/DynamicMeshAttributeSet.h"	
 #include "DynamicMesh/MeshNormals.h"	
 
+/*
+* CONSTRUCTOR
+*/
+
 AWorldLandscape::AWorldLandscape()
 {
 	// Set variables
 	GameMode = Cast<AMinerGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+}
 
-	// Set noise parameters
-	//Noise->SetSeed(GameMode->Seed);
-	//Noise->SetFrequency(NoiseFrequencey);
-	//Noise->SetNoiseType(NoiseNoiseType);
-	//Noise->SetFractalType(NoiseFractalType);
+/*
+* Overrides
+*/
+
+void AWorldLandscape::BeginPlay()
+{
+	Super::BeginPlay();
 
 
 }
 
+/*
+* Helper Functions
+*/
+
 void AWorldLandscape::LoadTerrainFromSave()
 {
-
+	// Set noise parameters
+	Noise->SetSeed(GameMode->Seed);
+	Noise->SetFrequency(NoiseFrequencey);
+	Noise->SetNoiseType(StaticCast<FastNoiseLite::NoiseType>(NoiseNoiseType));
+	Noise->SetFractalType(StaticCast<FastNoiseLite::FractalType>(NoiseFractalType));
 }
