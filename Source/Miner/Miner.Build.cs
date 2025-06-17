@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-version https://git-lfs.github.com/spec/v1
-oid sha256:31f7f75e189806d860e181aceae7284a3a4e78603c3b8729f4bb59919bc936c1
-size 1036
-=======
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 using UnrealBuildTool;
@@ -42,4 +37,3 @@ public class Miner : ModuleRules
 		});
 	}
 }
->>>>>>> ff6bcf8 (Cleaned up and tried to make thridparty work)
