@@ -47,45 +47,9 @@
 # Prevent accidentally committing large folders
 /Build/**     filter=lfs diff=lfs merge=lfs -text
 /Plugins/**   filter=lfs diff=lfs merge=lfs -text
-# Binaries and compiled files as binary
-Binaries/** -text
-DerivedDataCache/** -text
-Saved/**        -text
-Intermediate/** -text
-*.ini    text eol=lf
-*.cfg    text eol=lf
-*.json   text eol=lf
-*.xml    text eol=lf
-*.csv    text eol=lf
-*.h      text eol=lf
-*.cpp    text eol=lf
-*.cs     text eol=lf
-*.py     text eol=lf
-*.ush    text eol=lf
-*.usf    text eol=lf
-.gitmodules text eol=lf
 # Optional: treat README, LICENSE, etc. as text
 README.md text
 LICENSE   text
-*.gitignore filter=lfs diff=lfs merge=lfs -text
-*.vsconfig filter=lfs diff=lfs merge=lfs -text
-*.ini filter=lfs diff=lfs merge=lfs -text
-*.uproject filter=lfs diff=lfs merge=lfs -text
-*.cs filter=lfs diff=lfs merge=lfs -text
-*.cpp filter=lfs diff=lfs merge=lfs -text
-*.h filter=lfs diff=lfs merge=lfs -text
-*.md filter=lfs diff=lfs merge=lfs -text
-*.editorconfig filter=lfs diff=lfs merge=lfs -text
-*.json filter=lfs diff=lfs merge=lfs -text
-*.db filter=lfs diff=lfs merge=lfs -text
-*.pdf filter=lfs diff=lfs merge=lfs -text
-/Plugins/VisualStudioTools/LICENSE filter=lfs diff=lfs merge=lfs -text
-*.ps1 filter=lfs diff=lfs merge=lfs -text
-*.proj filter=lfs diff=lfs merge=lfs -text
-*.config filter=lfs diff=lfs merge=lfs -text
-*.uplugin filter=lfs diff=lfs merge=lfs -text
-*.patch filter=lfs diff=lfs merge=lfs -text
-*.yml filter=lfs diff=lfs merge=lfs -text
 *.md !text !filter !merge !diff
 *.ini !text !filter !merge !diff
 *.gitattributes !text !filter !merge !diff
