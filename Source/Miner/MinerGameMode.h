@@ -16,7 +16,4 @@ class AMinerGameMode : public AGameModeBase
 
 public:
 	AMinerGameMode();
-
-	UPROPERTY(EditAnywhere, Category= "Terrain")
-	float Seed;
 };
