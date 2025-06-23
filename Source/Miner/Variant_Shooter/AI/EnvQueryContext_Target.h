@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-version https://git-lfs.github.com/spec/v1
-oid sha256:968003be8df126859a32a73824a70418b48686e89947fe72ffa894c46d32e85b
-size 563
-=======
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #pragma once
@@ -25,4 +20,3 @@ public:
 	virtual void ProvideContext(FEnvQueryInstance& QueryInstance, FEnvQueryContextData& ContextData) const override;
 
 };
->>>>>>> f652433 (fixed LFS in .h header files)
