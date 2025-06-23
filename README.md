@@ -9,3 +9,9 @@ I'm going to try to have
 # Problems
 * Git has a limit on how many lfs files you can upload via git
     * solution: don't use git?
+* Commits not verified
+    * solution: git rebase --root \
+     --exec 'git commit --amend --no-edit -S' \
+     -S
+
+      Also remember to use ssh store to store the ssh signing key pass.
