@@ -1,5 +1,6 @@
 # ==============================
 # Unreal Engine .gitattributes
+# ==============================
 
 # LFS for large media/content files
 # Unreal Engine file types.
@@ -50,6 +51,8 @@
 # Optional: treat README, LICENSE, etc. as text
 README.md text
 LICENSE   text
+
+# I think added by Git LFS to make sure that it is not included with LFS
 *.md !text !filter !merge !diff
 *.ini !text !filter !merge !diff
 *.gitattributes !text !filter !merge !diff
