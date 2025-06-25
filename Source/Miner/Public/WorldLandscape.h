@@ -6,7 +6,7 @@
 #include "MinerGamemode.h"	// Game mode reference
 #include "DynamicMeshActor.h"	// Dynamic mesh stuff
 #include "DynamicMeshBuilder.h"    // Dynamic mesh stuff
-//#include "FastNoiseLite.h"	// Noise generation library
+#include "ThirdParty/FastNoiseLite.h"	// Noise generation library
 #include "WorldLandscape.generated.h"	// Generated header
 
 /**
@@ -21,7 +21,7 @@ class MINER_API AWorldLandscape : public ADynamicMeshActor
 
 public:
 	
-	//FastNoiseLite* Noise;
+	/*FastNoiseLite* Noise;*/
 
 protected:
 	/*
@@ -43,7 +43,7 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "World Gen")
 	float NoiseFrequencey = 0.03f;
-	//UPROPERTY(EditAnywhere, Category = "World Gen")
+	/*UPROPERTY(EditAnywhere, Category = "World Gen")*/
 	/*
 	* 1 = NoiseType_OpenSimplex2
     * 2 = NoiseType_OpenSimplex2S
@@ -52,8 +52,8 @@ private:
     * 5 = NoiseType_ValueCubic
 	* 6 = NoiseType_Value
 	*/
-	//int NoiseNoiseType = FastNoiseLite::NoiseType_Perlin;
-	//UPROPERTY(EditAnywhere, Category = "World Gen")
+	/*int NoiseNoiseType = FastNoiseLite::NoiseType_Perlin;*/
+	/*UPROPERTY(EditAnywhere, Category = "World Gen")*/
 	/*
 	* 1 = FractalType_None
     * 2 = FractalType_FBm
@@ -62,7 +62,7 @@ private:
     * 5 = FractalType_DomainWarpProgressive
     * 6 = FractalType_DomainWarpIndependent
 	*/
-	//int NoiseFractalType = FastNoiseLite::FractalType_FBm;
+	/*int NoiseFractalType = FastNoiseLite::FractalType_FBm;*/
 
 	// References to other stuff
 	TObjectPtr<AMinerGameMode> GameMode;

@@ -22,11 +22,13 @@ public class Miner : ModuleRules
 			"GeometryFramework",
 			"GeometryCore",
             "DynamicMesh",
+			"ThirdParty"
         });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {
             "OnlineSubsystem", // For online features
             "GeometryScriptingCore",
+			"ThirdParty"
     });
 
 		PublicIncludePaths.AddRange(new string[] {

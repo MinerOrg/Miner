@@ -2,19 +2,33 @@ using System;
 using System.IO;
 using UnrealBuildTool;
 
-public class MyThirdPartyLibrary : ModuleRules
+public class ThirdParty : ModuleRules
 {
-    public MyThirdPartyLibrary(ReadOnlyTargetRules Target) : base(Target)
+    public ThirdParty(ReadOnlyTargetRules Target) : base(Target)
     {
-        Type = ModuleType.External;
+        PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-        // Add any macros that need to be set
-        //PublicDefinitions.Add("WITH_MYTHIRDPARTYLIBRARY=1");
+        /**Include Paths*/
+        PublicIncludePaths.AddRange(new string[] {
+            Path.Combine(ModuleDirectory, "Public"),
+        });
 
-        // Add any include paths for the plugin
-        PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "FastNoiseLite.h"));
+        PrivateIncludePaths.AddRange(new string[] {
+            Path.Combine(ModuleDirectory, "Private"),
+        });
 
-        // Add any import libraries or static libraries
+        /**Module Names*/
+        PublicDependencyModuleNames.AddRange(new string[] {
+            "Core",
+            
+            
+        });
+
+        PrivateDependencyModuleNames.AddRange(new string[] {
+            
+        });
+
+        // Add any import libraries or static libraries (in case I need any)
         //PublicAdditionalLibraries.Add(Path.Combine(ModuleDirectory, "lib", "foo.a"));
     }
 }
