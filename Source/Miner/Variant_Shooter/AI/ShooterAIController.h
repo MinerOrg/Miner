@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-version https://git-lfs.github.com/spec/v1
-oid sha256:c71a5cb7fa4073688f6fbd6e57beef44705560b4bd985b012b14c16c44a8227c
-size 2296
-=======
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #pragma once
@@ -88,4 +83,3 @@ protected:
 	UFUNCTION()
 	void OnPerceptionForgotten(AActor* Actor);
 };
->>>>>>> f652433 (fixed LFS in .h header files)

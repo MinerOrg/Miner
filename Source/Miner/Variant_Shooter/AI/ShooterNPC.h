@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-version https://git-lfs.github.com/spec/v1
-oid sha256:cbf647a99ab793f8a381b37f074e5ab1f0a6241191696f7ba25dafd26110ed7a
-size 4531
-=======
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #pragma once
@@ -156,4 +151,3 @@ public:
 	/** Signals this character to stop shooting */
 	void StopShooting();
 };
->>>>>>> f652433 (fixed LFS in .h header files)

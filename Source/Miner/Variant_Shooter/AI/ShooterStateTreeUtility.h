@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-version https://git-lfs.github.com/spec/v1
-oid sha256:1a7f4cdea0a0835eaf0a74f5d934b799ef3f01f1f4d64095aacd7246d398c2c4
-size 10715
-=======
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #pragma once
@@ -312,4 +307,3 @@ struct FStateTreeSenseEnemiesTask : public FStateTreeTaskCommonBase
 };
 
 ////////////////////////////////////////////////////////////////////
->>>>>>> f652433 (fixed LFS in .h header files)
