@@ -52,7 +52,6 @@
 
 #include <cmath>
 
-UCLASS()
 class FastNoiseLite
 {
 public:

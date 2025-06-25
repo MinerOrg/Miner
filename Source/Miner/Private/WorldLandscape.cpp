@@ -30,10 +30,10 @@ void AWorldLandscape::BeginPlay()
 	* Set noise parameters
 	*/
 
-	/*Noise->SetSeed(GameMode->Seed);
+	Noise->SetSeed(GameMode->Seed);
 	Noise->SetFrequency(NoiseFrequencey);
 	Noise->SetNoiseType(StaticCast<FastNoiseLite::NoiseType>(NoiseNoiseType));
-	Noise->SetFractalType(StaticCast<FastNoiseLite::FractalType>(NoiseFractalType));*/
+	Noise->SetFractalType(StaticCast<FastNoiseLite::FractalType>(NoiseFractalType));
 }
 
 /*
