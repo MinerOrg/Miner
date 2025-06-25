@@ -312,7 +312,7 @@ public:
             return GenFractalPingPong(x, y);
         }
     }
-
+    
     /// <summary>
     /// 3D noise at given position using current settings
     /// </summary>
