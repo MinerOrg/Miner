@@ -26,6 +26,7 @@ protected:
 	*/
 
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	/**
 	* Helper functions
@@ -47,7 +48,7 @@ protected:
 
 private:
 	/**Noise parameters*/
-	FastNoiseLite* Noise;	// The actual noise variable
+	FastNoiseLite* Noise = nullptr;	// The actual noise variable
 
 	UPROPERTY(EditAnywhere, Category = "World Gen")
 	float NoiseScale = 0.1f;	// Scale of the noise
