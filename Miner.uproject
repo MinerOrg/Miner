@@ -37,7 +37,7 @@
 		},
 		{
 			"Name": "CelestialVault",
-			"Enabled": false
+			"Enabled": true
 		},
 		{
 			"Name": "PCGBiomeCore",
@@ -201,6 +201,10 @@
 		},
 		{
 			"Name": "GeometryProcessing",
+			"Enabled": true
+		},
+		{
+			"Name": "DaySequence",
 			"Enabled": true
 		}
 	]
