@@ -19,21 +19,9 @@ AWorldLandscape::AWorldLandscape()
 	/**Set dynamic mesh variables*/
 	DynamicMeshComponent = GetDynamicMeshComponent();
 	DynamicMesh = reinterpret_cast<FDynamicMesh3*>(DynamicMeshComponent->GetDynamicMesh());
-	
-	/**Get references to other stuff*/
-	GameMode = Cast<AMinerGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
 
+	/**Set noise*/
 	Noise = new FastNoiseLite();	// Noise variable becomes safe to use
-
-	check(Noise);	// CHECK 
-	check(IsValid(GameMode));	// CHECK (Note: THIS IS THE PROBLEM)
-
-	/** Set noise parameters*/
-	Noise->SetSeed(GameMode->Seed);
-	Noise->SetFrequency(NoiseFrequencey);
-	Noise->SetNoiseType(static_cast<FastNoiseLite::NoiseType>(NoiseNoiseType));
-	Noise->SetFractalType(static_cast<FastNoiseLite::FractalType>(NoiseFractalType));
-
 }
 
 /*
@@ -44,8 +32,17 @@ void AWorldLandscape::BeginPlay()
 {
 	Super::BeginPlay();
 
+	/**Get references to other stuff*/
+	GameMode = Cast<AMinerGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+
+	/** Set noise parameters*/
+	Noise->SetSeed(GameMode->Seed);
+	Noise->SetFrequency(NoiseFrequencey);
+	Noise->SetNoiseType(static_cast<FastNoiseLite::NoiseType>(NoiseNoiseType));
+	Noise->SetFractalType(static_cast<FastNoiseLite::FractalType>(NoiseFractalType));
+
 	// Temp
-	GenerateTerrain();
+	//GenerateTerrain();
 }
 
 void AWorldLandscape::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -69,25 +66,18 @@ void AWorldLandscape::GenerateTerrain()
 
 	/**CHECK IT ALL*/
 	check(IsValid(DynamicMeshComponent));
-	check(DynamicMesh);
-	check(Noise);
-	check(NoiseAmplitude);
-	check(NoiseScale);
+	checkf(DynamicMesh->CheckValidity(), TEXT("Dynamic Mesh Check failed."));
 
 	// Generation loop
 	for (int Vertex : DynamicMesh->VertexIndicesItr()) {
 		if (TempMax > 100) {
 			break;
 		}
-		FVector3d Pos = DynamicMesh->GetVertex(Vertex);
+
+		FVector3d Pos = DynamicMesh->GetVertex(Vertex);	// Get the position of the vertex
 
 		// Sample 2D Perlin noise at XY, you can do 3D by passing FVector3d
 		double Displace = Noise->GetNoise(Pos.X, Pos.Y, Pos.Z) * NoiseScale;
-
-		// Check variable
-		check(Vertex);
-		check(Displace);
-		check(NoiseAmplitude);
 
 		// Get the normals so we can push along it
 		FVector3d Normal = DynamicMesh->HasVertexNormals()
