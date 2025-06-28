@@ -20,6 +20,7 @@ class MINER_API AWorldLandscape : public ADynamicMeshActor
 
 public:
 
+
 protected:
 	/**
 	* Overriden functions
