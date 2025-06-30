@@ -45,7 +45,7 @@ protected:
 
 	/**Dynamic mesh variables*/
 	TObjectPtr<UDynamicMeshComponent> DynamicMeshComponent;
-	FDynamicMesh3* DynamicMesh;
+	FDynamicMesh3* DynamicMesh = nullptr;
 
 private:
 	/**Noise parameters*/
