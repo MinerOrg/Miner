@@ -7,7 +7,10 @@
 		{
 			"Name": "Miner",
 			"Type": "Runtime",
-			"LoadingPhase": "Default"
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine"
+			]
 		}
 	],
 	"Plugins": [
@@ -153,7 +156,7 @@
 		},
 		{
 			"Name": "AbilitySystemGameFeatureActions",
-			"Enabled": false
+			"Enabled": true
 		},
 		{
 			"Name": "AESGCMHandlerComponent",
