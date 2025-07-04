@@ -2,11 +2,26 @@
 
 #include "BaseCharacter.h"
 #include "EnhancedInputComponent.h"
+#include "AbilitySystemComponent.h"
 
 ABaseCharacter::ABaseCharacter()
 {
-	// configure movement
+	// configure movement (bugged + useless)
 	//GetCharacterMovement()->RotationRate = FRotator(0.0f, 600.0f, 0.0f);
+
+	// create the ability system component 
+	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
+}
+
+void ABaseCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+
+	AbilitySystemComponent = GetAbilitySystemComponent();
+
+	checkf(IsValid(AbilitySystemComponent), TEXT("Ability SYstem Component was Invalid on BaseCharacter.cpp"));
+
+	AttributeSet = AbilitySystemComponent->GetSet<UBaseCharacterAttributeSet>();
 }
 
 void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -65,7 +80,7 @@ void ABaseCharacter::DoStartSprint()
 
 	//	// call the sprint state changed delegate
 	//	OnSprintStateChanged.Broadcast(true);
-	}
+	//}
 
 }
 

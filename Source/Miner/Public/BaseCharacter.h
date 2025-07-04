@@ -4,15 +4,18 @@
 
 #include "CoreMinimal.h"
 #include "MinerCharacter.h"
-#include "BaseItem.h"
-#include "ShooterWeaponHolder.h"
+#include "AbilitySystemInterface.h"
+#include "BaseCharacterAttributeSet.h"
 #include "BaseCharacter.generated.h"
+
+class ABaseItem;
+class AShooterWeapon;
 
 /**
  * Base Character class used for player character, enemies, etc.
  */
 UCLASS()
-class MINER_API ABaseCharacter : public AMinerCharacter
+class MINER_API ABaseCharacter : public AMinerCharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 	
@@ -20,7 +23,7 @@ class MINER_API ABaseCharacter : public AMinerCharacter
 
 public:
 	/** Handles start right input */
-	UFUNCTION(BlueprintCallable, Category = "Input")
+	UFUNCTION(BlueprintCallable, Category = "Input") 
 	void DoStartRightClick();
 
 	/** Handles stop right input */
@@ -62,7 +65,7 @@ public:
 	void AddItemRecoil(float Recoil);
 
 	/** Updates the weapon's HUD with the current ammo count */
-	void UpdateItemHUD(int32 CurrentCount, int32 MaxStackSize);
+	void UpdateItemHUD(int CurrentCount, int MaxStackSize);
 
 	/** Calculates and returns the aim location for the weapon */
 	FVector GetItemTargetLocation();
@@ -96,6 +99,20 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	UInputAction* SprintAction;
 
+	/** 
+	* Gameplay Action Stuff (official terminology)
+	*/
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GAS", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
+
+	/** Get Ability System Component and Return it (when function called) */
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override { return AbilitySystemComponent; }
+
+	/** Attribute Set for this character */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GAS", meta = (AllowPrivateAccess = "true"))
+	const UBaseCharacterAttributeSet* AttributeSet;
+
 	/** Other actions like movement and jumping are in the parent class, AMinerCharacter */
 
 	/** Sockets (for items putting in hands) */
@@ -119,6 +136,7 @@ protected:
 	* Overrides
 	*/
 
+	virtual void BeginPlay() override;	// Called when the game starts and the character is spawned
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;	// Set up input action bindings
 	
 	/**
