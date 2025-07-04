@@ -28,6 +28,9 @@ public class Miner : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new string[] {
 			"OnlineSubsystem", // For online features
 			"GeometryScriptingCore",
+			"GameplayAbilities",
+			"GameplayTags",
+			"GameplayTasks",
 	});
 
 		PublicIncludePaths.AddRange(new string[] {
