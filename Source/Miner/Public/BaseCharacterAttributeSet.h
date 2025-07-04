@@ -40,7 +40,7 @@ class MINER_API UBaseCharacterAttributeSet : public UAttributeSet
 {
 	GENERATED_BODY()
 	
-protected:
+public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
 	FGameplayAttributeData Health;
 
@@ -49,6 +49,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
 	FGameplayAttributeData Stamina;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
+	FGameplayAttributeData MaxStamina;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
 	FGameplayAttributeData BaseAttack;
@@ -74,6 +77,12 @@ public:
 	GAMEPLAYATTRIBUTE_VALUE_GETTER(Stamina);
 	GAMEPLAYATTRIBUTE_VALUE_SETTER(Stamina);
 	GAMEPLAYATTRIBUTE_VALUE_INITTER(Stamina);
+
+	/* MaxStamina Variable Functions */
+	GAMEPLAYATTRIBUTE_PROPERTY_GETTER(UBaseCharacterAttributeSet, MaxStamina);
+	GAMEPLAYATTRIBUTE_VALUE_GETTER(MaxStamina);
+	GAMEPLAYATTRIBUTE_VALUE_SETTER(MaxStamina);
+	GAMEPLAYATTRIBUTE_VALUE_INITTER(MaxStamina);
 
 	/* BaseAttack Variable Functions */
 	GAMEPLAYATTRIBUTE_PROPERTY_GETTER(UBaseCharacterAttributeSet, BaseAttack);

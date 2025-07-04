@@ -122,6 +122,7 @@ void ABaseCharacter::AddItemRecoil(float Recoil)
 
 void ABaseCharacter::UpdateItemHUD(int32 CurrentCount, int32 MaxStackSize)
 {
+
 }
 
 FVector ABaseCharacter::GetItemTargetLocation()
