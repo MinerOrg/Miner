@@ -1,21 +1,11 @@
-# Miner - a game based on minecraft
-I'm going to try to have 
+# Miner - a game inspired by Minecraft
+I'm going to try to have: 
 * very good graphics (thanks ue, sort of)
 * cool world gen
 * realistic mechanics (we removed fireflies being eaten by frogs because they are poisonous)
-* AI
+* Smart AI
 * maybe have good performance
 
-# Problems
-* Git has a limit on how many lfs files you can upload via git
-    * solution: don't use git?
-* Commits not verified
-    * <p>solution: use this to rebase after repo change </p>
-  
-     <pre>
-     git rebase --root \
-     --exec 'git commit --amend --no-edit -S' \
-     -S
-     </pre>
-
-   Also remember to use ssh store to store the ssh signing key pass.
+## Helpful git commands
+* Save a signing key password for 3600 seconds: 
+   <pre>ssh-add -t 3600 ~/.ssh/id_ed25519_signing</pre>
