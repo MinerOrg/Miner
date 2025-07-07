@@ -64,9 +64,6 @@ public:
 	/** Applies weapon recoil to the owner */
 	void AddItemRecoil(float Recoil);
 
-	/** Updates the weapon's HUD with the current ammo count */
-	void UpdateItemHUD(int CurrentCount, int MaxStackSize);
-
 	/** Calculates and returns the aim location for the weapon */
 	FVector GetItemTargetLocation();
 

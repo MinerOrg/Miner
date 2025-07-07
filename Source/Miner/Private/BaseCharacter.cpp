@@ -19,7 +19,7 @@ void ABaseCharacter::BeginPlay()
 
 	AbilitySystemComponent = GetAbilitySystemComponent();
 
-	checkf(IsValid(AbilitySystemComponent), TEXT("Ability SYstem Component was Invalid on BaseCharacter.cpp"));
+	checkf(IsValid(AbilitySystemComponent), TEXT("Ability System Component was Invalid on BaseCharacter.cpp"));
 
 	AttributeSet = AbilitySystemComponent->GetSet<UBaseCharacterAttributeSet>();
 }
@@ -28,6 +28,8 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 {
 	// base class handles move, aim and jump inputs
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("BaseCharacter SetupPlayerInputComponent called"));
 
 	// Set up action bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
@@ -118,11 +120,6 @@ void ABaseCharacter::PlayRightClickMontage(UAnimMontage* Montage)
 
 void ABaseCharacter::AddItemRecoil(float Recoil)
 {
-}
-
-void ABaseCharacter::UpdateItemHUD(int32 CurrentCount, int32 MaxStackSize)
-{
-
 }
 
 FVector ABaseCharacter::GetItemTargetLocation()
