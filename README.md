@@ -8,4 +8,4 @@ I'm going to try to have:
 
 ## Helpful git commands
 * Save a signing key password for 3600 seconds: 
-   <pre>ssh-add -t 3600 ~/.ssh/id_ed25519_signing</pre>
+   <pre>ssh-add -t 3600 [SSH SIGNING KEY]</pre>
