@@ -164,7 +164,7 @@
 		},
 		{
 			"Name": "MutableClothing",
-			"Enabled": false
+			"Enabled": true
 		},
 		{
 			"Name": "VoiceChat",
@@ -208,6 +208,18 @@
 		},
 		{
 			"Name": "DaySequence",
+			"Enabled": true
+		},
+		{
+			"Name": "HairStrandsMutable",
+			"Enabled": true
+		},
+		{
+			"Name": "MutablePopulation",
+			"Enabled": true
+		},
+		{
+			"Name": "RigLogicMutable",
 			"Enabled": true
 		}
 	]

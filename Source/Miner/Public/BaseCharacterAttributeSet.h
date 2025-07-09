@@ -11,26 +11,12 @@
 * Define how to get , set, and initialize attributes. (nvm didn't need it)
 */
 
-/* Define Health variable functions */
-//#define ATTRIBUTE_ACCESSORS(UBaseCharacterAttributeSet, Health)\
-//	GAMEPLAYATTRIBUTE_PROPERTY_GETTER(UBaseCharacterAttributeSet, Health)\
-//	GAMEPLAYATTRIBUTE_VALUE_GETTER(Health)\
-//	GAMEPLAYATTRIBUTE_VALUE_SETTER(Health)\
-//	GAMEPLAYATTRIBUTE_VALUE_INITTER(Health)\
-//
-///* Define Health variable functions */
-//#define ATTRIBUTE_ACCESSORS(UBaseCharacterAttributeSet, Health)\
-//	GAMEPLAYATTRIBUTE_PROPERTY_GETTER(UBaseCharacterAttributeSet, Health)\
-//	GAMEPLAYATTRIBUTE_VALUE_GETTER(Health)\
-//	GAMEPLAYATTRIBUTE_VALUE_SETTER(Health)\
-//	GAMEPLAYATTRIBUTE_VALUE_INITTER(Health)\
-//
-///* Define Health variable functions */
-//#define ATTRIBUTE_ACCESSORS(UBaseCharacterAttributeSet, Health)\
-//	GAMEPLAYATTRIBUTE_PROPERTY_GETTER(UBaseCharacterAttributeSet, Health)\
-//	GAMEPLAYATTRIBUTE_VALUE_GETTER(Health)\
-//	GAMEPLAYATTRIBUTE_VALUE_SETTER(Health)\
-//	GAMEPLAYATTRIBUTE_VALUE_INITTER(Health)\
+/* Base Variable Helper Functions */
+#define ATTRIBUTE_ACCESSORS(ClassName, PropertyName)\
+	GAMEPLAYATTRIBUTE_PROPERTY_GETTER(ClassName, PropertyName)\
+	GAMEPLAYATTRIBUTE_VALUE_GETTER(PropertyName)\
+	GAMEPLAYATTRIBUTE_VALUE_SETTER(PropertyName)\
+	GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)\
 
 /**
  * 
@@ -43,50 +29,34 @@ class MINER_API UBaseCharacterAttributeSet : public UAttributeSet
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
 	FGameplayAttributeData Health;
+	ATTRIBUTE_ACCESSORS(UBaseCharacterAttributeSet, Health);
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
 	FGameplayAttributeData MaxHealth;
+	ATTRIBUTE_ACCESSORS(UBaseCharacterAttributeSet, MaxHealth);
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
 	FGameplayAttributeData Stamina;
+	ATTRIBUTE_ACCESSORS(UBaseCharacterAttributeSet, Stamina);
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
 	FGameplayAttributeData MaxStamina;
+	ATTRIBUTE_ACCESSORS(UBaseCharacterAttributeSet, MaxStamina);
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
 	FGameplayAttributeData BaseAttack;
-public: 
+	ATTRIBUTE_ACCESSORS(UBaseCharacterAttributeSet, BaseAttack);
+
+protected:
 	/**
-	* Helper functions to access attributes
+	* Override values
 	*/
 
-	/* Health Variable Functions */
-	GAMEPLAYATTRIBUTE_PROPERTY_GETTER(UBaseCharacterAttributeSet, Health);
-	GAMEPLAYATTRIBUTE_VALUE_GETTER(Health);
-	GAMEPLAYATTRIBUTE_VALUE_SETTER(Health);
-	GAMEPLAYATTRIBUTE_VALUE_INITTER(Health);
+	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;	// Called before an attribute is changed
+	
+	/**
+	* Helper functions
+	*/
 
-	/* MaxHealth Variable Functions */
-	GAMEPLAYATTRIBUTE_PROPERTY_GETTER(UBaseCharacterAttributeSet, MaxHealth);
-	GAMEPLAYATTRIBUTE_VALUE_GETTER(MaxHealth);
-	GAMEPLAYATTRIBUTE_VALUE_SETTER(MaxHealth);
-	GAMEPLAYATTRIBUTE_VALUE_INITTER(MaxHealth);
-
-	/* Stamina Variable Functions */
-	GAMEPLAYATTRIBUTE_PROPERTY_GETTER(UBaseCharacterAttributeSet, Stamina);
-	GAMEPLAYATTRIBUTE_VALUE_GETTER(Stamina);
-	GAMEPLAYATTRIBUTE_VALUE_SETTER(Stamina);
-	GAMEPLAYATTRIBUTE_VALUE_INITTER(Stamina);
-
-	/* MaxStamina Variable Functions */
-	GAMEPLAYATTRIBUTE_PROPERTY_GETTER(UBaseCharacterAttributeSet, MaxStamina);
-	GAMEPLAYATTRIBUTE_VALUE_GETTER(MaxStamina);
-	GAMEPLAYATTRIBUTE_VALUE_SETTER(MaxStamina);
-	GAMEPLAYATTRIBUTE_VALUE_INITTER(MaxStamina);
-
-	/* BaseAttack Variable Functions */
-	GAMEPLAYATTRIBUTE_PROPERTY_GETTER(UBaseCharacterAttributeSet, BaseAttack);
-	GAMEPLAYATTRIBUTE_VALUE_GETTER(BaseAttack);
-	GAMEPLAYATTRIBUTE_VALUE_SETTER(BaseAttack);
-	GAMEPLAYATTRIBUTE_VALUE_INITTER(BaseAttack);
+	void ClampValues(const FGameplayAttribute& Attribute, float& NewValue);
 };

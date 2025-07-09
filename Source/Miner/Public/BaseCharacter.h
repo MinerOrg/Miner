@@ -22,6 +22,10 @@ class MINER_API ABaseCharacter : public AMinerCharacter, public IAbilitySystemIn
 	ABaseCharacter();
 
 public:
+	/**
+	* Input Functions
+	*/
+
 	/** Handles start right input */
 	UFUNCTION(BlueprintCallable, Category = "Input") 
 	void DoStartRightClick();
@@ -46,40 +50,44 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Input")
 	void DoEndSprint();
 
+	/** Handles start crouch input */
+	UFUNCTION(BlueprintCallable, Category = "Input")
+	void DoStartCrouch();
+
+	/** Handles end crouch input */
+	UFUNCTION(BlueprintCallable, Category = "Input")
+	void DoEndCrouch();
+
 	/** Handles switch weapon input */
 	UFUNCTION(BlueprintCallable, Category = "Input")
 	void DoSwitchItem();
 
-	//~Begin IShooterWeaponHolder interface
+	///** Attaches a weapon's meshes to the owner */
+	//void AttachItemMeshes(ABaseItem* Item);
 
-	/** Attaches a weapon's meshes to the owner */
-	void AttachItemMeshes(ABaseItem* Item);
+	///** Plays the firing montage for the weapon */
+	//void PlayLeftClickMontage(UAnimMontage* Montage);
 
-	/** Plays the firing montage for the weapon */
-	void PlayLeftClickMontage(UAnimMontage* Montage);
+	///** Plays the firing montage for the weapon */
+	//void PlayRightClickMontage(UAnimMontage* Montage);
 
-	/** Plays the firing montage for the weapon */
-	void PlayRightClickMontage(UAnimMontage* Montage);
+	///** Applies weapon recoil to the owner */
+	//void AddItemRecoil(float Recoil);
 
-	/** Applies weapon recoil to the owner */
-	void AddItemRecoil(float Recoil);
+	///** Calculates and returns the aim location for the weapon */
+	//FVector GetItemTargetLocation();
 
-	/** Calculates and returns the aim location for the weapon */
-	FVector GetItemTargetLocation();
+	///** Gives a weapon of this class to the owner */
+	//void AddItemClass(const TSubclassOf<ABaseItem>& ItemClass);
 
-	/** Gives a weapon of this class to the owner */
-	void AddItemClass(const TSubclassOf<ABaseItem>& ItemClass);
+	///** Activates the passed weapon */
+	//void OnItemActivated(ABaseItem* Item);
 
-	/** Activates the passed weapon */
-	void OnItemActivated(ABaseItem* Item);
+	///** Deactivates the passed item */
+	//void OnItemDeactivated(ABaseItem* Item);
 
-	/** Deactivates the passed item */
-	void OnItemDeactivated(ABaseItem* Item);
-
-	/** Notifies the owner that the weapon cooldown has expired and it's ready to use again */
-	void OnItemReuse();
-
-	//~End IShooterWeaponHolder interface
+	///** Notifies the owner that the weapon cooldown has expired and it's ready to use again */
+	//void OnItemReuse();
 
 protected:
 	/** Input actions */
@@ -89,12 +97,15 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	UInputAction* RightClickAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	UInputAction* SwitchItemAction;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	UInputAction* SprintAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	UInputAction* CrouchAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	UInputAction* SwitchItemAction;
 
 	/** 
 	* Gameplay Action Stuff (official terminology)

@@ -29,8 +29,6 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	// base class handles move, aim and jump inputs
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("BaseCharacter SetupPlayerInputComponent called"));
-
 	// Set up action bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
@@ -44,7 +42,11 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 		// Sprint
 		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &ABaseCharacter::DoStartSprint);
-		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &ABaseCharacter::DoEndSprint);
+		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &ABaseCharacter::DoEndSprint);
+
+		// Crouch
+		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this, &ABaseCharacter::DoStartCrouch);
+		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Completed, this, &ABaseCharacter::DoEndCrouch);
 
 		// Switch item
 		EnhancedInputComponent->BindAction(SwitchItemAction, ETriggerEvent::Triggered, this, &ABaseCharacter::DoSwitchItem);
@@ -102,43 +104,53 @@ void ABaseCharacter::DoEndSprint()
 	//}
 }
 
+void ABaseCharacter::DoStartCrouch()
+{
+	Crouch();
+}
+
+void ABaseCharacter::DoEndCrouch()
+{
+	UnCrouch();
+}
+
 void ABaseCharacter::DoSwitchItem()
 {
 }
 
-void ABaseCharacter::AttachItemMeshes(ABaseItem* Item)
-{
-}
-
-void ABaseCharacter::PlayLeftClickMontage(UAnimMontage* Montage)
-{
-}
-
-void ABaseCharacter::PlayRightClickMontage(UAnimMontage* Montage)
-{
-}
-
-void ABaseCharacter::AddItemRecoil(float Recoil)
-{
-}
-
-FVector ABaseCharacter::GetItemTargetLocation()
-{
-	return FVector();
-}
-
-void ABaseCharacter::AddItemClass(const TSubclassOf<ABaseItem>& ItemClass)
-{
-}
-
-void ABaseCharacter::OnItemActivated(ABaseItem* Item)
-{
-}
-
-void ABaseCharacter::OnItemDeactivated(ABaseItem* Item)
-{
-}
-
-void ABaseCharacter::OnItemReuse()
-{
-}
+//void ABaseCharacter::AttachItemMeshes(ABaseItem* Item)
+//{
+//}
+//
+//void ABaseCharacter::PlayLeftClickMontage(UAnimMontage* Montage)
+//{
+//}
+//
+//void ABaseCharacter::PlayRightClickMontage(UAnimMontage* Montage)
+//{
+//}
+//
+//void ABaseCharacter::AddItemRecoil(float Recoil)
+//{
+//}
+//
+//FVector ABaseCharacter::GetItemTargetLocation()
+//{
+//	return FVector();
+//}
+//
+//void ABaseCharacter::AddItemClass(const TSubclassOf<ABaseItem>& ItemClass)
+//{
+//}
+//
+//void ABaseCharacter::OnItemActivated(ABaseItem* Item)
+//{
+//}
+//
+//void ABaseCharacter::OnItemDeactivated(ABaseItem* Item)
+//{
+//}
+//
+//void ABaseCharacter::OnItemReuse()
+//{
+//}
