@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "MinerCharacter.h"
 #include "AbilitySystemInterface.h"
-#include "BaseCharacterAttributeSet.h"
 #include "BaseCharacter.generated.h"
 
 class ABaseItem;
@@ -119,7 +118,7 @@ protected:
 
 	/** Attribute Set for this character */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GAS", meta = (AllowPrivateAccess = "true"))
-	const UBaseCharacterAttributeSet* AttributeSet;
+	const class UBaseCharacterAttributeSet* AttributeSet;	// Have to put the class thing here for some reason
 
 	/** Other actions like movement and jumping are in the parent class, AMinerCharacter */
 
