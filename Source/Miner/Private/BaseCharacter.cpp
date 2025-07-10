@@ -3,6 +3,7 @@
 #include "BaseCharacter.h"
 #include "EnhancedInputComponent.h"
 #include "AbilitySystemComponent.h"
+#include "BaseCharacterAttributeSet.h"
 
 ABaseCharacter::ABaseCharacter()
 {
@@ -11,6 +12,10 @@ ABaseCharacter::ABaseCharacter()
 
 	// create the ability system component 
 	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
+
+	checkf(IsValid(AbilitySystemComponent), TEXT("Ability System Component was Invalid on BaseCharacter.cpp"));
+
+	AttributeSet = AbilitySystemComponent->GetSet<UBaseCharacterAttributeSet>();
 }
 
 void ABaseCharacter::BeginPlay()
@@ -19,8 +24,8 @@ void ABaseCharacter::BeginPlay()
 
 	AbilitySystemComponent = GetAbilitySystemComponent();
 
+	// Set the Ability System Component
 	checkf(IsValid(AbilitySystemComponent), TEXT("Ability System Component was Invalid on BaseCharacter.cpp"));
-
 	AttributeSet = AbilitySystemComponent->GetSet<UBaseCharacterAttributeSet>();
 }
 
@@ -107,11 +112,14 @@ void ABaseCharacter::DoEndSprint()
 void ABaseCharacter::DoStartCrouch()
 {
 	Crouch();
+
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Crouch started"));
 }
 
 void ABaseCharacter::DoEndCrouch()
 {
 	UnCrouch();
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Crouch ended"));
 }
 
 void ABaseCharacter::DoSwitchItem()

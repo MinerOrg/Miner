@@ -5,9 +5,10 @@
 
 void UBaseCharacterAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
 {
-	Super::PreAttributeChange(Attribute, NewValue);
-
+	// Clamp values before applying them
 	ClampValues(Attribute, NewValue);
+
+	Super::PreAttributeChange(Attribute, NewValue);
 }
 
 void UBaseCharacterAttributeSet::ClampValues(const FGameplayAttribute& Attribute, float& NewValue)
