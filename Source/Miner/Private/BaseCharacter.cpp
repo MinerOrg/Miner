@@ -12,10 +12,6 @@ ABaseCharacter::ABaseCharacter()
 
 	// create the ability system component 
 	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
-
-	checkf(IsValid(AbilitySystemComponent), TEXT("Ability System Component was Invalid on BaseCharacter.cpp"));
-
-	AttributeSet = AbilitySystemComponent->GetSet<UBaseCharacterAttributeSet>();
 }
 
 void ABaseCharacter::BeginPlay()
