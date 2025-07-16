@@ -88,6 +88,15 @@ public:
 	///** Notifies the owner that the weapon cooldown has expired and it's ready to use again */
 	//void OnItemReuse();
 
+
+	/**
+	* Defaults
+	*/
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Defaults")
+	float DefaultWalkSpeed = 600.0f;	// Default walk speed for the character
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Defaults")
+	float DefaultSprintSpeed = 1000.0f;	// Default sprint speed for the character
+
 protected:
 	/** Input actions */
 
