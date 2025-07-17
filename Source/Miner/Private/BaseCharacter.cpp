@@ -3,6 +3,8 @@
 #include "BaseCharacter.h"
 #include "EnhancedInputComponent.h"
 #include "AbilitySystemComponent.h"
+#include "EnhancedInputSubsystems.h"
+#include <typeinfo>
 #include "BaseCharacterAttributeSet.h"
 
 ABaseCharacter::ABaseCharacter()
@@ -23,6 +25,9 @@ void ABaseCharacter::BeginPlay()
 	// Set the Ability System Component
 	checkf(IsValid(AbilitySystemComponent), TEXT("Ability System Component was Invalid on BaseCharacter.cpp"));
 	AttributeSet = AbilitySystemComponent->GetSet<UBaseCharacterAttributeSet>();
+
+	// Grant abilities to the character
+	GrantAbilities();
 }
 
 void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -53,6 +58,15 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 		EnhancedInputComponent->BindAction(SwitchItemAction, ETriggerEvent::Triggered, this, &ABaseCharacter::DoSwitchItem);
 	}
 
+	// Set up GAS action bindings
+	if (IsValid(PlayerInputComponent) && IsValid(AbilitySystemComponent))
+	{
+		// Bind the ability system component to the input component
+		AbilitySystemComponent->BindToInputComponent(PlayerInputComponent);
+
+		// Sprint
+		//AbilitySystemComponent->BindAbilityActivationToInputComponent(PlayerInputComponent, FGameplayAbilityInputBinds(TEXT("ConfirmTarget"), TEXT("CancelTarget"),TEXT("EAbilityInputID"), 0, 0));
+	}
 }
 
 void ABaseCharacter::DoStartRightClick()
@@ -74,6 +88,10 @@ void ABaseCharacter::DoStopLeftClick()
 
 void ABaseCharacter::DoStartSprint()
 {
+	/**
+	* Old code from horror character
+	*/
+
 	//// set the sprinting flag
 	//bSprinting = true;
 
@@ -87,10 +105,19 @@ void ABaseCharacter::DoStartSprint()
 	//	OnSprintStateChanged.Broadcast(true);
 	//}
 
+	// Call a virtual input for id 0 (AKA Sprint)	Used instead of getting a abilityspechandle
+	AbilitySystemComponent->AbilityLocalInputPressed(0);
+
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Sprint called"));
+	UE_LOG(LogTemp, Log, TEXT("Sprint called"));
 }
 
 void ABaseCharacter::DoEndSprint()
 {
+	/**
+	* Old code from horror character
+	*/
+
 	//// set the sprinting flag
 	//bSprinting = false;
 
@@ -103,18 +130,25 @@ void ABaseCharacter::DoEndSprint()
 	//	// call the sprint state changed delegate
 	//	OnSprintStateChanged.Broadcast(false);
 	//}
+
+	// Release input
+	AbilitySystemComponent->AbilityLocalInputReleased(0);
+
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Sprint released"));
+	UE_LOG(LogTemp, Log, TEXT("Sprint released"));
 }
 
 void ABaseCharacter::DoStartCrouch()
 {
-	Crouch();
+	Crouch();	// Default crouch
 
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Crouch started"));
 }
 
 void ABaseCharacter::DoEndCrouch()
 {
-	UnCrouch();
+	UnCrouch();	// Default uncrouch
+
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Crouch ended"));
 }
 
@@ -158,3 +192,19 @@ void ABaseCharacter::DoSwitchItem()
 //void ABaseCharacter::OnItemReuse()
 //{
 //}
+
+void ABaseCharacter::GrantAbilities()
+{
+	int CurrentAbilityIndex = 0;
+
+	check(IsValid(AbilitySystemComponent));
+
+	for (TSubclassOf<UGameplayAbility> AbilityClass : DefaultAbilities)
+	{
+		checkf(IsValid(AbilityClass), TEXT("Ability Class invalid while trying to grant abilities. Ability type: %s"), ANSI_TO_TCHAR(typeid(AbilityClass).name()));
+
+		AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(AbilityClass, 1, CurrentAbilityIndex, this));
+
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Granted ability: %s"), *AbilityClass->GetName()));
+	}
+}

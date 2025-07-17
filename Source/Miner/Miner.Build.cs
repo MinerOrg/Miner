@@ -19,19 +19,19 @@ public class Miner : ModuleRules
 			"StateTreeModule",
 			"GameplayStateTreeModule",
 			"UMG",
-			/* The next 3 lines are for the dynamic terrain */
-			"GeometryFramework",
-			"GeometryCore",
-			"DynamicMesh",
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {
 			"OnlineSubsystem", // For online features
 			"GeometryScriptingCore",
-			"GameplayAbilities",
-			"GameplayTags",
-			"GameplayTasks",
-	});
+            "GameplayAbilities",
+            "GameplayTags",
+            "GameplayTasks",
+			/* The next 3 lines are for the dynamic terrain */
+            "GeometryFramework",
+            "GeometryCore",
+            "DynamicMesh",
+    });
 
 		PublicIncludePaths.AddRange(new string[] {
 			"Miner",

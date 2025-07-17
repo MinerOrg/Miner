@@ -131,16 +131,19 @@ protected:
 
 	/** Other actions like movement and jumping are in the parent class, AMinerCharacter */
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GAS")
+	TArray<TSubclassOf<class UGameplayAbility>> DefaultAbilities;	// List of abilities to grant to the character
+
+	/**
+	* Inventory
+	*/
+
 	/** Sockets (for items putting in hands) */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Items")
 	FName LeftHandSocket = FName("HandGrip_L");
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Items")
 	FName RightHandSocket = FName("HandGrip_R");
-
-	/**
-	* Inventory
-	*/
 
 	/** List of items picked up by the character */
 	TArray<ABaseItem*> OwnedItems;
@@ -161,4 +164,7 @@ protected:
 
 	/** Returns true if the character already owns a weapon of the given class */
 	AShooterWeapon* FindWeaponOfType(TSubclassOf<ABaseItem> WeaponClass) const;
+
+	/**Grant abilities*/
+	void GrantAbilities();
 };
