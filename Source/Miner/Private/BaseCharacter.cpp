@@ -7,6 +7,8 @@
 #include <typeinfo>
 #include "BaseCharacterAttributeSet.h"
 
+DEFINE_LOG_CATEGORY(LogBaseCharacter);
+
 ABaseCharacter::ABaseCharacter()
 {
 	// configure movement (bugged + useless)
@@ -109,7 +111,7 @@ void ABaseCharacter::DoStartSprint()
 	AbilitySystemComponent->AbilityLocalInputPressed(0);
 
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Sprint called"));
-	UE_LOG(LogTemp, Log, TEXT("Sprint called"));
+	UE_LOG(LogBaseCharacter, Log, TEXT("Sprint called"));
 }
 
 void ABaseCharacter::DoEndSprint()
@@ -135,7 +137,7 @@ void ABaseCharacter::DoEndSprint()
 	AbilitySystemComponent->AbilityLocalInputReleased(0);
 
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Sprint released"));
-	UE_LOG(LogTemp, Log, TEXT("Sprint released"));
+	UE_LOG(LogBaseCharacter, Log, TEXT("Sprint released"));
 }
 
 void ABaseCharacter::DoStartCrouch()
