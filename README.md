@@ -7,5 +7,6 @@ I'm going to try to have:
 * maybe have good performance
 
 ## Helpful git commands
-* Save a signing key password for 3600 seconds: 
-   <pre>ssh-add -t 3600 [SSH SIGNING KEY]</pre>
+* Save ssh key
+   <pre>eval "$(ssh-agent -s)"</pre>
+   <pre>ssh-add [SSH SIGNING KEY]</pre>
