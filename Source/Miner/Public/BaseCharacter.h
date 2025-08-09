@@ -5,10 +5,13 @@
 #include "CoreMinimal.h"
 #include "MinerCharacter.h"
 #include "AbilitySystemInterface.h"
+#include "Logging/LogMacros.h"
 #include "BaseCharacter.generated.h"
 
 class ABaseItem;
 class AShooterWeapon;
+
+DECLARE_LOG_CATEGORY_EXTERN(LogBaseCharacter, Log, All);
 
 /**
  * Base Character class used for player character, enemies, etc.
@@ -96,6 +99,14 @@ public:
 	float DefaultWalkSpeed = 600.0f;	// Default walk speed for the character
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Defaults")
 	float DefaultSprintSpeed = 1000.0f;	// Default sprint speed for the character
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Defaults")
+	float DefaultJumpHeight = 420.0f;	// Default jump height for the character
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Defaults")
+	float DefaultSprintJumpHeight = 600.0f;	// Default jump height when sprinting for the character
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Defaults")
+	float DefaultCrouchSpeed = 300.0f;	// Default crouch speed for the character
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Defaults")
+	float DefaultCrouchHeight = 40.0f;	// Default crouch height for the character
 
 protected:
 	/** Input actions */
