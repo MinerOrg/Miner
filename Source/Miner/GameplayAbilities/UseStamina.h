@@ -14,8 +14,6 @@ class MINER_API UUseStamina : public UGameplayEffect
 {
 	GENERATED_BODY()
 
-	UUseStamina();
-
 protected:
 
 };

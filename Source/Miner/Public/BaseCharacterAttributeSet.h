@@ -25,27 +25,42 @@ UCLASS()
 class MINER_API UBaseCharacterAttributeSet : public UAttributeSet
 {
 	GENERATED_BODY()
+
+	UBaseCharacterAttributeSet();
 	
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_Health, Category = "Attributes")
 	FGameplayAttributeData Health;
 	ATTRIBUTE_ACCESSORS(UBaseCharacterAttributeSet, Health);
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_MaxHealth, Category = "Attributes")
 	FGameplayAttributeData MaxHealth;
 	ATTRIBUTE_ACCESSORS(UBaseCharacterAttributeSet, MaxHealth);
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_Stamina, Category = "Attributes")
 	FGameplayAttributeData Stamina;
 	ATTRIBUTE_ACCESSORS(UBaseCharacterAttributeSet, Stamina);
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_MaxStamina, Category = "Attributes")
 	FGameplayAttributeData MaxStamina;
 	ATTRIBUTE_ACCESSORS(UBaseCharacterAttributeSet, MaxStamina);
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_BaseAttack, Category = "Attributes")
 	FGameplayAttributeData BaseAttack;
 	ATTRIBUTE_ACCESSORS(UBaseCharacterAttributeSet, BaseAttack);
+
+	UFUNCTION()
+	void OnRep_Health(const FGameplayAttributeData& OldHealth)	{	GAMEPLAYATTRIBUTE_REPNOTIFY(UBaseCharacterAttributeSet, Health, OldHealth);	}
+	UFUNCTION()
+	void OnRep_MaxHealth(const FGameplayAttributeData& OldMaxHealth) { GAMEPLAYATTRIBUTE_REPNOTIFY(UBaseCharacterAttributeSet, MaxHealth, OldMaxHealth); }
+	UFUNCTION()
+	void OnRep_Stamina(const FGameplayAttributeData& OldStamina) { GAMEPLAYATTRIBUTE_REPNOTIFY(UBaseCharacterAttributeSet, Stamina, OldStamina); }
+	UFUNCTION()
+	void OnRep_MaxStamina(const FGameplayAttributeData& OldMaxStamina) { GAMEPLAYATTRIBUTE_REPNOTIFY(UBaseCharacterAttributeSet, MaxStamina, OldMaxStamina); }
+	UFUNCTION()
+	void OnRep_BaseAttack(const FGameplayAttributeData& OldBaseAttack) { GAMEPLAYATTRIBUTE_REPNOTIFY(UBaseCharacterAttributeSet, BaseAttack, OldBaseAttack); }
 
 protected:
 	/**
@@ -53,6 +68,7 @@ protected:
 	*/
 
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;	// Called before an attribute is changed
+	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;	// Called after a gameplay effect is executed
 	
 	/**
 	* Helper functions

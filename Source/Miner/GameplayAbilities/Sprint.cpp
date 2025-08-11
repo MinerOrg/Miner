@@ -135,16 +135,12 @@ void USprint::ApplyStaminaEffect(const FGameplayAbilitySpecHandle Handle, const 
 	StaminaEffectSpecHandle.Data->SetSetByCallerMagnitude(StaminaUseGameplayEffectTag, AmountOfStaminaToUse);
 
 	// Log stuff
-	UE_LOG(LogTemp, Warning, TEXT("Setting tag: %s value: %f"),
-		*StaminaUseGameplayEffectTag.ToString(),
-		AmountOfStaminaToUse);
+	UE_LOG(LogTemp, Warning, TEXT("Setting tag: %s value: %f"), *StaminaUseGameplayEffectTag.ToString(), AmountOfStaminaToUse);
 
-	float TestValue = StaminaEffectSpecHandle.Data->GetSetByCallerMagnitude(StaminaUseGameplayEffectTag, false);
-	UE_LOG(LogTemp, Warning, TEXT("Read back immediately: %f"), TestValue);
+	float ValueByTag = StaminaEffectSpecHandle.Data->GetSetByCallerMagnitude(StaminaUseGameplayEffectTag, false);
+	float ValueByName = StaminaEffectSpecHandle.Data->GetSetByCallerMagnitude(FName("AttributeChange.UseStamina"), false);
 
-	UE_LOG(LogTemp, Warning, TEXT("SetByCaller Tag: %s"), *StaminaUseGameplayEffectTag.ToString());
-	float TestValue2 = StaminaEffectSpecHandle.Data->GetSetByCallerMagnitude(StaminaUseGameplayEffectTag, false);
-	UE_LOG(LogTemp, Warning, TEXT("Magnitude before apply: %f"), TestValue2);
+	UE_LOG(LogSprintAbility, Warning, TEXT("Debug: ValueByTag=%f, ValueByName=%f"), ValueByTag, ValueByName);
 
 	// Apply effect to character
 	check(StaminaEffectSpecHandle.IsValid());
