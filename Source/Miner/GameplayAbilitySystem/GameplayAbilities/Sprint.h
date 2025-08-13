@@ -29,8 +29,10 @@ class USprint : public UGameplayAbility
 protected:	
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
+	virtual void InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 
 	ABaseCharacter* Character;
+	UBaseCharacterAttributeSet* AttributeSet;
 
 	UPROPERTY(EditDefaultsOnly)
 	float AmountOfStaminaToUse = 10.0f;
@@ -44,14 +46,12 @@ protected:
 	/** AbilityTask to monitor stamina changes */
 	UPROPERTY()
 	UAbilityTask_WaitAttributeChange* WaitStaminaTask;
-	/* Function that waits for release */
-	virtual void InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 
 	/** Stamina changed call this function */
 	UFUNCTION()
 	void OnStaminaChanged();
 
 	/** Helper function to get the attribute set */
-	const UBaseCharacterAttributeSet* GetAttributeSet(const FGameplayAbilityActorInfo* ActorInfo) { return Cast<const UBaseCharacterAttributeSet>(ActorInfo->AbilitySystemComponent->GetAttributeSet(UBaseCharacterAttributeSet::StaticClass())); }
+	UBaseCharacterAttributeSet* GetAttributeSet(const FGameplayAbilityActorInfo* ActorInfo) { return const_cast<UBaseCharacterAttributeSet*>(Cast<const UBaseCharacterAttributeSet>(ActorInfo->AbilitySystemComponent->GetAttributeSet(UBaseCharacterAttributeSet::StaticClass()))); }
 	void ApplyStaminaEffect(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo);
 };

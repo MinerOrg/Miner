@@ -28,6 +28,10 @@ public:
 	* Input Functions
 	*/
 
+	// Overrided functions for jumping. Don't need UFunction because it already has on MinerCharacter
+	virtual void DoJumpStart() override;
+	virtual void DoJumpEnd() override;
+
 	/** Handles start right input */
 	UFUNCTION(BlueprintCallable, Category = "Input") 
 	void DoStartRightClick();
@@ -137,7 +141,7 @@ protected:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override { return AbilitySystemComponent; }
 
 	/** Attribute Set for this character */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GAS", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(BlueprintReadOnly, Category = "GAS", meta = (AllowPrivateAccess = "true"))
 	const class UBaseCharacterAttributeSet* AttributeSet;	// Have to put the class thing here for some reason
 
 	/** Other actions like movement and jumping are in the parent class, AMinerCharacter */

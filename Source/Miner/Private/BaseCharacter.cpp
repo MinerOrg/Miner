@@ -1,11 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "BaseCharacter.h"
+#include "BaseCharacterAttributeSet.h"
+#include "GameplayAbilitySystem/CharacterAbilities.h"
 #include "EnhancedInputComponent.h"
 #include "AbilitySystemComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include <typeinfo>
-#include "BaseCharacterAttributeSet.h"
 
 DEFINE_LOG_CATEGORY(LogBaseCharacter);
 
@@ -34,12 +35,19 @@ void ABaseCharacter::BeginPlay()
 
 void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
-	// base class handles move, aim and jump inputs
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
 	// Set up action bindings
-	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
-	{
+	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))	{
+		// Jumping
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ABaseCharacter::DoJumpStart);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ABaseCharacter::DoJumpEnd);
+
+		// Moving
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ABaseCharacter::MoveInput);
+
+		// Looking/Aiming
+		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ABaseCharacter::LookInput);
+		EnhancedInputComponent->BindAction(MouseLookAction, ETriggerEvent::Triggered, this, &ABaseCharacter::LookInput);
+
 		// Left click
 		EnhancedInputComponent->BindAction(LeftClickAction, ETriggerEvent::Started, this, &ABaseCharacter::DoStartLeftClick);
 		EnhancedInputComponent->BindAction(LeftClickAction, ETriggerEvent::Completed, this, &ABaseCharacter::DoStopLeftClick);
@@ -59,6 +67,9 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 		// Switch item
 		EnhancedInputComponent->BindAction(SwitchItemAction, ETriggerEvent::Triggered, this, &ABaseCharacter::DoSwitchItem);
 	}
+	else {
+		UE_LOG(LogTemplateCharacter, Error, TEXT("'%s' Failed to find an Enhanced Input Component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
+	}
 
 	// Set up GAS action bindings
 	if (IsValid(PlayerInputComponent) && IsValid(AbilitySystemComponent))
@@ -69,6 +80,22 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 		// Sprint
 		//AbilitySystemComponent->BindAbilityActivationToInputComponent(PlayerInputComponent, FGameplayAbilityInputBinds(TEXT("ConfirmTarget"), TEXT("CancelTarget"),TEXT("EAbilityInputID"), 0, 0));
 	}
+}
+
+void ABaseCharacter::DoJumpStart()
+{
+	AbilitySystemComponent->AbilityLocalInputPressed(static_cast<int32>(EAbilitiesIndex::JumpAbility));
+
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Jump called"));
+	UE_LOG(LogBaseCharacter, Log, TEXT("Jump called"));
+}
+
+void ABaseCharacter::DoJumpEnd()
+{
+	AbilitySystemComponent->AbilityLocalInputReleased(static_cast<int32>(EAbilitiesIndex::JumpAbility));
+
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Sprint released"));
+	UE_LOG(LogBaseCharacter, Log, TEXT("Jump released"));
 }
 
 void ABaseCharacter::DoStartRightClick()
@@ -90,25 +117,7 @@ void ABaseCharacter::DoStopLeftClick()
 
 void ABaseCharacter::DoStartSprint()
 {
-	/**
-	* Old code from horror character
-	*/
-
-	//// set the sprinting flag
-	//bSprinting = true;
-
-	//// are we out of recovery mode?
-	//if (!bRecovering)
-	//{
-	//	// set the sprint walk speed
-	//	GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
-
-	//	// call the sprint state changed delegate
-	//	OnSprintStateChanged.Broadcast(true);
-	//}
-
-	// Call a virtual input for id 0 (AKA Sprint)	Used instead of getting a abilityspechandle
-	AbilitySystemComponent->AbilityLocalInputPressed(0);
+	AbilitySystemComponent->AbilityLocalInputPressed(static_cast<int32>(EAbilitiesIndex::SprintAbility));
 
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Sprint called"));
 	UE_LOG(LogBaseCharacter, Log, TEXT("Sprint called"));
@@ -116,25 +125,7 @@ void ABaseCharacter::DoStartSprint()
 
 void ABaseCharacter::DoEndSprint()
 {
-	/**
-	* Old code from horror character
-	*/
-
-	//// set the sprinting flag
-	//bSprinting = false;
-
-	//// are we out of recovery mode?
-	//if (!bRecovering)
-	//{
-	//	// set the default walk speed
-	//	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
-
-	//	// call the sprint state changed delegate
-	//	OnSprintStateChanged.Broadcast(false);
-	//}
-
-	// Release input
-	AbilitySystemComponent->AbilityLocalInputReleased(0);
+	AbilitySystemComponent->AbilityLocalInputReleased(static_cast<int32>(EAbilitiesIndex::SprintAbility));
 
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Sprint released"));
 	UE_LOG(LogBaseCharacter, Log, TEXT("Sprint released"));
@@ -142,16 +133,18 @@ void ABaseCharacter::DoEndSprint()
 
 void ABaseCharacter::DoStartCrouch()
 {
-	Crouch();	// Default crouch
+	AbilitySystemComponent->AbilityLocalInputPressed(static_cast<int32>(EAbilitiesIndex::CrouchAbility));
 
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Crouch started"));
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Crouch called"));
+	UE_LOG(LogBaseCharacter, Log, TEXT("Crouch called"));
 }
 
 void ABaseCharacter::DoEndCrouch()
 {
-	UnCrouch();	// Default uncrouch
+	AbilitySystemComponent->AbilityLocalInputReleased(static_cast<int32>(EAbilitiesIndex::CrouchAbility));
 
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Crouch ended"));
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Crouch released"));
+	UE_LOG(LogBaseCharacter, Log, TEXT("Crouch released"));
 }
 
 void ABaseCharacter::DoSwitchItem()
@@ -208,5 +201,8 @@ void ABaseCharacter::GrantAbilities()
 		AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(AbilityClass, 1, CurrentAbilityIndex, this));
 
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Granted ability: %s"), *AbilityClass->GetName()));
+		UE_LOG(LogBaseCharacter, Log, TEXT("Granted ability: %s"), *AbilityClass->GetName());
+
+		CurrentAbilityIndex++;
 	}
 }
