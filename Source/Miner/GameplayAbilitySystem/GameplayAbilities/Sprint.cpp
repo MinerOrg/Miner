@@ -1,8 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+#include "GameplayAbilitySystem/GameplayAbilities/Sprint.h"
 #include "Sprint.h"
 #include "BaseCharacter.h"
-#include "GameplayAbilities/UseStamina.h"
+#include "GameplayAbilitySystem/GameplayEffects/UseStamina.h"
 #include "BaseCharacterAttributeSet.h"
 #include "AbilitySystemComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -28,7 +29,7 @@ void USprint::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 		Character = Cast<ABaseCharacter>(ActorInfo->AvatarActor.Get());
 		check(IsValid(Character));
 		// Get the attribute set from the AbilitySystemComponent
-		const UBaseCharacterAttributeSet* AttributeSet = GetAttributeSet(ActorInfo);
+		AttributeSet = GetAttributeSet(ActorInfo);
 
 		// Call the ApplyStaminaEffect function to apply the UseStamina gameplay effect
 		ApplyStaminaEffect(Handle, ActorInfo, ActivationInfo);
@@ -91,7 +92,6 @@ void USprint::OnStaminaChanged()
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Stamina changed"));
 	UE_LOG(LogTemp, Log, TEXT("Stamina changed"));
 
-	const UBaseCharacterAttributeSet* AttributeSet = GetAttributeSet(CurrentActorInfo);
 	check(IsValid(AttributeSet));
 	const float NewValue = AttributeSet->GetStamina();
 
