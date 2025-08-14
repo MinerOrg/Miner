@@ -31,6 +31,17 @@ void ABaseCharacter::BeginPlay()
 
 	// Grant abilities to the character
 	GrantAbilities();
+
+	// Make stamina regen
+	FGameplayEffectContextHandle ContextHandle = AbilitySystemComponent->MakeEffectContext();
+	ContextHandle.AddSourceObject(this);
+	FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(
+		StaminaRegenClass, // TSubclassOf<UGameplayEffect>
+		1.0f,                  // Level
+		ContextHandle
+	);
+
+	AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get(), AbilitySystemComponent->ScopedPredictionKey);
 }
 
 void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -94,7 +105,7 @@ void ABaseCharacter::DoJumpEnd()
 {
 	AbilitySystemComponent->AbilityLocalInputReleased(static_cast<int32>(EAbilitiesIndex::JumpAbility));
 
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Sprint released"));
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Jump released"));
 	UE_LOG(LogBaseCharacter, Log, TEXT("Jump released"));
 }
 
