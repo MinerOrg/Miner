@@ -17,17 +17,16 @@ void UCrouch::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	if (CommitAbility(Handle, ActorInfo, ActivationInfo))
-	{
-		Character = Cast<ABaseCharacter>(ActorInfo->AvatarActor);
-		Character->Crouch();
-	}
-	else
+	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Crouch ability could not be commited"));
 		UE_LOG(LogTemp, Warning, TEXT("Crouch ability could not be committed"));
+
 		return;
 	}
+
+	Character = Cast<ABaseCharacter>(ActorInfo->AvatarActor);
+	Character->Crouch();
 }
 
 void UCrouch::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)

@@ -10,6 +10,7 @@
 
 class ABaseItem;
 class AShooterWeapon;
+class UGameplayEffect;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogBaseCharacter, Log, All);
 
@@ -148,6 +149,10 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GAS")
 	TArray<TSubclassOf<class UGameplayAbility>> DefaultAbilities;	// List of abilities to grant to the character
+
+	/** Stamina regen effect class */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GAS")
+	TSubclassOf<UGameplayEffect> StaminaRegenClass;
 
 	/**
 	* Inventory

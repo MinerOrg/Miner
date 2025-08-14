@@ -23,36 +23,33 @@ void USprint::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
 	// Make sure ability is able to start
-	if (CommitAbility(Handle, ActorInfo, ActivationInfo))
+	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
-		// Get the character from the ActorInfo and make sure it is valid
-		Character = Cast<ABaseCharacter>(ActorInfo->AvatarActor.Get());
-		check(IsValid(Character));
-		// Get the attribute set from the AbilitySystemComponent
-		AttributeSet = GetAttributeSet(ActorInfo);
-
-		// Call the ApplyStaminaEffect function to apply the UseStamina gameplay effect
-		ApplyStaminaEffect(Handle, ActorInfo, ActivationInfo);
-
-		// Set sprint parameters
-		Character->GetCharacterMovement()->MaxWalkSpeed = Character->DefaultSprintSpeed;
-		Character->GetCharacterMovement()->JumpZVelocity = Character->DefaultSprintJumpHeight;
-
-		// Log
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Sprint started"));
-		UE_LOG(LogSprintAbility, Log, TEXT("Sprint started"));
-
-		// Cancel if no more stamina
-		WaitStaminaTask = UAbilityTask_WaitAttributeChange::WaitForAttributeChangeWithComparison(this, AttributeSet->GetStaminaAttribute(), FGameplayTag(), FGameplayTag(), EWaitAttributeChangeComparison::LessThanOrEqualTo, 0.0f, false, nullptr);
-		WaitStaminaTask->OnChange.AddDynamic(this, &USprint::OnStaminaChanged);
-		WaitStaminaTask->ReadyForActivation();
-	}
-	else
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Sprint ability could not be commited"));
+		UE_LOG(LogSprintAbility, Log, TEXT("Sprint ability could not be commited"));
 
 		return;
 	}
+	// Get the character from the ActorInfo and make sure it is valid
+	Character = Cast<ABaseCharacter>(ActorInfo->AvatarActor.Get());
+	check(IsValid(Character));
+	// Get the attribute set from the AbilitySystemComponent
+	AttributeSet = GetAttributeSet(ActorInfo);
+
+	// Call the ApplyStaminaEffect function to apply the UseStamina gameplay effect
+	ApplyStaminaEffect(Handle, ActorInfo, ActivationInfo);
+
+	// Set sprint parameters
+	Character->GetCharacterMovement()->MaxWalkSpeed = Character->DefaultSprintSpeed;
+	Character->GetCharacterMovement()->JumpZVelocity = Character->DefaultSprintJumpHeight;
+
+	// Log
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Sprint started"));
+	UE_LOG(LogSprintAbility, Log, TEXT("Sprint started"));
+	
+	// Cancel if no more stamina
+	WaitStaminaTask = UAbilityTask_WaitAttributeChange::WaitForAttributeChangeWithComparison(this, AttributeSet->GetStaminaAttribute(), FGameplayTag(), FGameplayTag(), EWaitAttributeChangeComparison::LessThanOrEqualTo, 0.0f, false, nullptr);
+	WaitStaminaTask->OnChange.AddDynamic(this, &USprint::OnStaminaChanged);
+	WaitStaminaTask->ReadyForActivation();
 }
 
 void USprint::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
@@ -105,8 +102,7 @@ void USprint::ApplyStaminaEffect(const FGameplayAbilitySpecHandle Handle, const 
 	// Lambda function to create a target data handle from an actor. 
 	// This could've been normal code, but IDK, Copiolot told me to 
 	// (make another function, not a lambda function, but I will never need this. Unless child class, in which I will make this into a real function, but I don't know if I'm going to do that)
-	auto MakeTargetDataHandleFromActor = [](AActor* TargetActor)->FGameplayAbilityTargetDataHandle
-		{
+	auto MakeTargetDataHandleFromActor = [](AActor* TargetActor)->FGameplayAbilityTargetDataHandle	{
 			FGameplayAbilityTargetDataHandle TargetDataHandle;
 			check(TargetActor);
 			if (TargetActor)
@@ -121,7 +117,7 @@ void USprint::ApplyStaminaEffect(const FGameplayAbilitySpecHandle Handle, const 
 			}
 
 			return TargetDataHandle;
-		};
+	};
 
 	// Make sure we have authority to do this
 	check(HasAuthority(&ActivationInfo));
