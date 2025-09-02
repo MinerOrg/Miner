@@ -1,15 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "GameplayAbilitySystem/GameplayAbilities/Sprint.h"
 #include "Sprint.h"
 #include "BaseCharacter.h"
 #include "GameplayAbilitySystem/GameplayEffects/UseStamina.h"
 #include "BaseCharacterAttributeSet.h"
 #include "AbilitySystemComponent.h"
-#include "Kismet/GameplayStatics.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Abilities/Tasks/AbilityTask_WaitAttributeChange.h"
-#include "Abilities/Tasks/AbilityTask_WaitInputRelease.h"
 
 DEFINE_LOG_CATEGORY(LogSprintAbility);
 
@@ -23,12 +20,19 @@ void USprint::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
 	// Make sure ability is able to start
-	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
+	if (!HasAuthorityOrPredictionKey(ActorInfo, &ActivationInfo))
 	{
-		UE_LOG(LogSprintAbility, Log, TEXT("Sprint ability could not be commited"));
-
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Sprint ability could not be commited"));
+		UE_LOG(LogSprintAbility, Warning, TEXT("Sprint ability could not be activated because it doesn't have authority or prediction key"));
 		return;
 	}
+	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Sprint ability could not be commited"));
+		UE_LOG(LogSprintAbility, Log, TEXT("Sprint ability could not be commited"));
+		return;
+	}
+
 	// Get the character from the ActorInfo and make sure it is valid
 	Character = Cast<ABaseCharacter>(ActorInfo->AvatarActor.Get());
 	check(IsValid(Character));
@@ -44,7 +48,7 @@ void USprint::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 
 	// Log
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Sprint started"));
-	UE_LOG(LogSprintAbility, Log, TEXT("Sprint started"));
+	UE_LOG(LogSprintAbility, Log, TEXT("Sprint started. Applied to: %s"), *Character->GetName());
 	
 	// Cancel if no more stamina
 	WaitStaminaTask = UAbilityTask_WaitAttributeChange::WaitForAttributeChangeWithComparison(this, AttributeSet->GetStaminaAttribute(), FGameplayTag(), FGameplayTag(), EWaitAttributeChangeComparison::LessThanOrEqualTo, 0.0f, false, nullptr);
@@ -120,7 +124,10 @@ void USprint::ApplyStaminaEffect(const FGameplayAbilitySpecHandle Handle, const 
 	};
 
 	// Make sure we have authority to do this
-	check(HasAuthority(&ActivationInfo));
+	if (HasAuthority(&ActivationInfo)) {
+		// Cuz this isn't server
+		return;
+	}
 
 	// Get gameplay effect context and stamina effect spec handle
 	FGameplayEffectContextHandle EffectContext = ActorInfo->AbilitySystemComponent->MakeEffectContext();

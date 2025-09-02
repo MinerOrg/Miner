@@ -3,16 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Abilities/GameplayAbility.h"
 #include "AbilitySystemComponent.h"
 #include "Logging/LogMacros.h"
-#include "Abilities/GameplayAbility.h"
-#include "Abilities/Tasks/AbilityTask_WaitInputRelease.h"
 #include "BaseCharacterAttributeSet.h"
 #include "Sprint.generated.h"
 
 class ABaseCharacter;
 class UAbilityTask_WaitAttributeChange;
-class UAbilityTask_WaitInputRelease;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogSprintAbility, Log, All);
 

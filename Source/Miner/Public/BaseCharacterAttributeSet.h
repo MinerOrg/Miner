@@ -7,10 +7,6 @@
 #include "AbilitySystemComponent.h"
 #include "BaseCharacterAttributeSet.generated.h"
 
-/**
-* Define how to get , set, and initialize attributes. (nvm didn't need it)
-*/
-
 /* Base Variable Helper Functions */
 #define ATTRIBUTE_ACCESSORS(ClassName, PropertyName)\
 	GAMEPLAYATTRIBUTE_PROPERTY_GETTER(ClassName, PropertyName)\
@@ -69,10 +65,4 @@ protected:
 
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;	// Called before an attribute is changed
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;	// Called after a gameplay effect is executed
-	
-	/**
-	* Helper functions
-	*/
-
-	void ClampValues(const FGameplayAttribute& Attribute, float& NewValue);
 };
