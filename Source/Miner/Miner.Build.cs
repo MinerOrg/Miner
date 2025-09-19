@@ -24,14 +24,14 @@ public class Miner : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new string[] {
 			"OnlineSubsystem", // For online features
 			"GeometryScriptingCore",
-            "GameplayAbilities",
-            "GameplayTags",
-            "GameplayTasks",
+			"GameplayAbilities",
+			"GameplayTags",
+			"GameplayTasks",
 			/* The next 3 lines are for the dynamic terrain */
-            "GeometryFramework",
-            "GeometryCore",
-            "DynamicMesh",
-    });
+			"GeometryFramework",
+			"GeometryCore",
+			"DynamicMesh",
+	});
 
 		PublicIncludePaths.AddRange(new string[] {
 			"Miner",
@@ -41,5 +41,7 @@ public class Miner : ModuleRules
 			/**For thirdparty stuff*/
 			"Miner/ThirdParty",
 		});
+
+		SetupIrisSupport(Target);
 	}
 }
