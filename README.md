@@ -10,3 +10,5 @@ I'm going to try to have:
 * Save ssh key
    <pre>eval "$(ssh-agent -s)"</pre>
    <pre>ssh-add [SSH SIGNING KEY]</pre>
+* Reset to last commit
+   <pre>git reset --hard HEAD</pre>

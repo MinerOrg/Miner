@@ -42,6 +42,6 @@ public class Miner : ModuleRules
 			"Miner/ThirdParty",
 		});
 
-		SetupIrisSupport(Target);
+		//SetupIrisSupport(Target);
 	}
 }

@@ -3,9 +3,7 @@
 #include "BaseCharacter.h"
 #include "BaseCharacterAttributeSet.h"
 #include "GameplayAbilitySystem/CharacterAbilities.h"
-#include "EnhancedInputComponent.h"
 #include "AbilitySystemComponent.h"
-#include "EnhancedInputSubsystems.h"
 #include <typeinfo>
 
 DEFINE_LOG_CATEGORY(LogBaseCharacter);
@@ -23,74 +21,27 @@ void ABaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	AbilitySystemComponent = GetAbilitySystemComponent();
-
-	// Set the Ability System Component
+	// Do not overwrite the member created in the constructor.
+	// If for some reason it wasn't created, try to find a component on the actor.
+	// Also make sure it is good
+	if (!IsValid(AbilitySystemComponent)) {	AbilitySystemComponent = FindComponentByClass<UAbilitySystemComponent>(); }
 	checkf(IsValid(AbilitySystemComponent), TEXT("Ability System Component was Invalid on BaseCharacter.cpp"));
+
+	// Get attribute set and validate it.
 	AttributeSet = AbilitySystemComponent->GetSet<UBaseCharacterAttributeSet>();
+	checkf(AttributeSet != nullptr, TEXT("UBaseCharacterAttributeSet was null on BaseCharacter.cpp"));
 
 	// Grant abilities to the character
 	GrantAbilities();
 
-	// Make stamina regen
+	// Make stamina regen (validate the effect class and the spec before applying)
+	checkf(IsValid(StaminaRegenClass), TEXT("Needs a valid staminaregenclass"));
+
 	FGameplayEffectContextHandle ContextHandle = AbilitySystemComponent->MakeEffectContext();
 	ContextHandle.AddSourceObject(this);
-	FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(
-		StaminaRegenClass, // TSubclassOf<UGameplayEffect>
-		1.0f,                  // Level
-		ContextHandle
-	);
 
-	AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get(), AbilitySystemComponent->ScopedPredictionKey);
-}
-
-void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	// Set up action bindings
-	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))	{
-		// Jumping
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ABaseCharacter::DoJumpStart);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ABaseCharacter::DoJumpEnd);
-
-		// Moving
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ABaseCharacter::MoveInput);
-
-		// Looking/Aiming
-		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ABaseCharacter::LookInput);
-		EnhancedInputComponent->BindAction(MouseLookAction, ETriggerEvent::Triggered, this, &ABaseCharacter::LookInput);
-
-		// Left click
-		EnhancedInputComponent->BindAction(LeftClickAction, ETriggerEvent::Started, this, &ABaseCharacter::DoStartLeftClick);
-		EnhancedInputComponent->BindAction(LeftClickAction, ETriggerEvent::Completed, this, &ABaseCharacter::DoStopLeftClick);
-
-		// Right click
-		EnhancedInputComponent->BindAction(RightClickAction, ETriggerEvent::Started, this, &ABaseCharacter::DoStartRightClick);
-		EnhancedInputComponent->BindAction(RightClickAction, ETriggerEvent::Completed, this, &ABaseCharacter::DoStopRightClick);
-
-		// Sprint
-		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &ABaseCharacter::DoStartSprint);
-		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &ABaseCharacter::DoEndSprint);
-
-		// Crouch
-		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this, &ABaseCharacter::DoStartCrouch);
-		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Completed, this, &ABaseCharacter::DoEndCrouch);
-
-		// Switch item
-		EnhancedInputComponent->BindAction(SwitchItemAction, ETriggerEvent::Triggered, this, &ABaseCharacter::DoSwitchItem);
-	}
-	else {
-		UE_LOG(LogTemplateCharacter, Error, TEXT("'%s' Failed to find an Enhanced Input Component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
-	}
-
-	// Set up GAS action bindings
-	if (IsValid(PlayerInputComponent) && IsValid(AbilitySystemComponent))
-	{
-		// Bind the ability system component to the input component
-		AbilitySystemComponent->BindToInputComponent(PlayerInputComponent);
-
-		// Sprint
-		//AbilitySystemComponent->BindAbilityActivationToInputComponent(PlayerInputComponent, FGameplayAbilityInputBinds(TEXT("ConfirmTarget"), TEXT("CancelTarget"),TEXT("EAbilityInputID"), 0, 0));
-	}
+	FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(StaminaRegenClass, 1.0f, ContextHandle);
+	if (!SpecHandle.Data.IsValid()) { AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get(), AbilitySystemComponent->ScopedPredictionKey); }
 }
 
 void ABaseCharacter::DoJumpStart()
