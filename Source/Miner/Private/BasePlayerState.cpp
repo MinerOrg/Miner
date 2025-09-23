@@ -5,5 +5,5 @@
 
 ABasePlayerState::ABasePlayerState()
 {
-	NetUpdateFrequency = BaseNetUpdateFrequency;
+	SetNetUpdateFrequency(BaseNetUpdateFrequency);
 }

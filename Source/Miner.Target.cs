@@ -12,6 +12,6 @@ public class MinerTarget : TargetRules
 		IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_6;
 		ExtraModuleNames.Add("Miner");
 
-		bUseIris = true;
+		bUseIris = false;
 	}
 }

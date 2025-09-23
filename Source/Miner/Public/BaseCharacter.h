@@ -22,9 +22,9 @@ class MINER_API ABaseCharacter : public AMinerCharacter, public IAbilitySystemIn
 {
 	GENERATED_BODY()
 	
+public:
 	ABaseCharacter();
 
-public:
 	/**
 	* Input Functions
 	*/
@@ -176,7 +176,6 @@ protected:
 	*/
 
 	virtual void BeginPlay() override;	// Called when the game starts and the character is spawned
-	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;	// Set up input action bindings
 	
 	/**
 	* Helpers
