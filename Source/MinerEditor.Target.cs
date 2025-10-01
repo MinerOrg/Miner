@@ -10,6 +10,8 @@ public class MinerEditorTarget : TargetRules
 		Type = TargetType.Editor;
 		DefaultBuildSettings = BuildSettingsVersion.V5;
 		IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_6;
-		ExtraModuleNames.Add("Miner");
+        ExtraModuleNames.AddRange(new string[] { "Miner", "ThirdParty" });
+		
+		bUseIris = true;
 	}
 }

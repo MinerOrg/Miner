@@ -14,4 +14,7 @@ class MINER_API AWorldGameMode : public AMinerGameMode
 {
 	GENERATED_BODY()
 	
+public:
+	AWorldGameMode();
+	float Seed = 0;
 };

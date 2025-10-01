@@ -3,3 +3,7 @@
 
 #include "WorldGameMode.h"
 
+AWorldGameMode::AWorldGameMode()
+{
+
+}
