@@ -19,6 +19,7 @@ public class Miner : ModuleRules
 			"StateTreeModule",
 			"GameplayStateTreeModule",
 			"UMG",
+			"ThirdParty"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {
@@ -38,10 +39,9 @@ public class Miner : ModuleRules
 			"Miner/Variant_Horror",
 			"Miner/Variant_Shooter",
 			"Miner/Variant_Shooter/AI",
-			/**For thirdparty stuff*/
-			"Miner/ThirdParty",
+			"ThirdParty",
 		});
 
-		//SetupIrisSupport(Target);
+		SetupIrisSupport(Target);
 	}
 }

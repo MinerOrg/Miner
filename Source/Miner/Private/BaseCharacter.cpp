@@ -152,6 +152,8 @@ void ABaseCharacter::DoSwitchItem()
 
 void ABaseCharacter::GrantAbilities()
 {
+	if (!HasAuthority()) { return; }
+
 	int CurrentAbilityIndex = 0;
 
 	check(IsValid(AbilitySystemComponent));

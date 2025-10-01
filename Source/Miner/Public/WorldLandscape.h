@@ -3,10 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "MinerGamemode.h"	// Game mode reference
-#include "DynamicMeshActor.h"	// Dynamic mesh stuff
-#include "ThirdParty/FastNoiseLite.h"	// Noise generation library
-#include "WorldLandscape.generated.h"	// Generated header
+#include "DynamicMeshActor.h"
+#include "FastNoiseLite.h"
+#include "WorldLandscape.generated.h"
+
+class AMinerGameMode;
 
 /**
  * TERRAIN CLASS
@@ -15,11 +16,9 @@ UCLASS()
 class MINER_API AWorldLandscape : public ADynamicMeshActor
 {
 	GENERATED_BODY()
-	
-	AWorldLandscape();
 
 public:
-
+	AWorldLandscape();
 
 protected:
 	/**

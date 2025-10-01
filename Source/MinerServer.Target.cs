@@ -11,7 +11,7 @@ public class MinerServerTarget : TargetRules
     {
         Type = TargetType.Server;
 
-        ExtraModuleNames.AddRange(new string[] { "Miner" });
+        ExtraModuleNames.AddRange(new string[] { "Miner", "ThirdParty" });
 
         DefaultBuildSettings = BuildSettingsVersion.V5;
         IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_6;
@@ -19,5 +19,6 @@ public class MinerServerTarget : TargetRules
         //MinerGameTarget.ApplySharedMinerTargetSettings(this); // IDK what this does
 
         bUseChecksInShipping = false;
+        bUseIris = true;
     }
 }
