@@ -230,17 +230,32 @@
 		},
 		{
 			"Name": "StreamlineReflex",
-			"Enabled": false,
+			"Enabled": true,
 			"MarketplaceURL": "https://www.unrealengine.com/marketplace/en-US/product/nvidia-dlss"
 		},
 		{
 			"Name": "StreamlineDLSSG",
-			"Enabled": false,
+			"Enabled": true,
 			"MarketplaceURL": "https://www.unrealengine.com/marketplace/en-US/product/nvidia-dlss"
 		},
 		{
 			"Name": "Iris",
 			"Enabled": true
+		},
+		{
+			"Name": "DLSS",
+			"Enabled": true,
+			"MarketplaceURL": "https://www.unrealengine.com/marketplace/en-US/product/nvidia-dlss"
+		},
+		{
+			"Name": "NIS",
+			"Enabled": true,
+			"MarketplaceURL": "https://www.unrealengine.com/marketplace/en-US/product/nvidia-dlss"
+		},
+		{
+			"Name": "StreamlineDeepDVC",
+			"Enabled": true,
+			"MarketplaceURL": "https://www.unrealengine.com/marketplace/en-US/product/nvidia-dlss"
 		}
 	]
 }
