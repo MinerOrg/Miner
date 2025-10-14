@@ -113,43 +113,6 @@ void ABaseCharacter::DoSwitchItem()
 {
 }
 
-//void ABaseCharacter::AttachItemMeshes(ABaseItem* Item)
-//{
-//}
-//
-//void ABaseCharacter::PlayLeftClickMontage(UAnimMontage* Montage)
-//{
-//}
-//
-//void ABaseCharacter::PlayRightClickMontage(UAnimMontage* Montage)
-//{
-//}
-//
-//void ABaseCharacter::AddItemRecoil(float Recoil)
-//{
-//}
-//
-//FVector ABaseCharacter::GetItemTargetLocation()
-//{
-//	return FVector();
-//}
-//
-//void ABaseCharacter::AddItemClass(const TSubclassOf<ABaseItem>& ItemClass)
-//{
-//}
-//
-//void ABaseCharacter::OnItemActivated(ABaseItem* Item)
-//{
-//}
-//
-//void ABaseCharacter::OnItemDeactivated(ABaseItem* Item)
-//{
-//}
-//
-//void ABaseCharacter::OnItemReuse()
-//{
-//}
-
 void ABaseCharacter::GrantAbilities()
 {
 	if (!HasAuthority()) { return; }
