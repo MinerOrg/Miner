@@ -55,8 +55,5 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	{
 		// Bind the ability system component to the input component
 		AbilitySystemComponent->BindToInputComponent(PlayerInputComponent);
-
-		// Sprint
-		//AbilitySystemComponent->BindAbilityActivationToInputComponent(PlayerInputComponent, FGameplayAbilityInputBinds(TEXT("ConfirmTarget"), TEXT("CancelTarget"),TEXT("EAbilityInputID"), 0, 0));
 	}
 }
