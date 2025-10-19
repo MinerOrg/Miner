@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "WorldLandscape.h"
 #include "MinerGamemode.h"
@@ -6,6 +6,7 @@
 #include "DynamicMesh/DynamicMesh3.h"	
 #include "DynamicMesh/MeshNormals.h"
 #include "GeometryTypes.h"
+#include "DynamicMesh/MeshNormals.h"
 
 /*
 * CONSTRUCTOR
@@ -28,9 +29,16 @@ AWorldLandscape::AWorldLandscape()
 void AWorldLandscape::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	DynamicMeshComponent = GetDynamicMeshComponent();
-	/**Start the process of getting the FDynamicMesh3*/
+	checkf(IsValid(DynamicMeshComponent), TEXT("Dynamic Mesh Component Invalid"));
+
+	// Set up collision here, after DynamicMeshComponent is valid
+	DynamicMeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	DynamicMeshComponent->SetCollisionObjectType(ECC_WorldStatic);
+	DynamicMeshComponent->SetCollisionResponseToAllChannels(ECR_Block);
+
+	/** Start the process of getting the FDynamicMesh3 */
 	checkf(IsValid(DynamicMeshComponent), TEXT("Dynamic Mesh Component Invalid"));
 	UDynamicMesh* DynamicMeshTemp = DynamicMeshComponent->GetDynamicMesh();
 	checkf(IsValid(DynamicMeshTemp), TEXT("DynamicMeshTemp (UDynamicMesh*) was invalid"));
@@ -67,45 +75,54 @@ void AWorldLandscape::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void AWorldLandscape::GenerateTerrain()
 {
-	int TempMax = 0;
-
 	/**CHECK IT ALL*/
 	check(IsValid(DynamicMeshComponent));
-	//checkf(DynamicMesh->CheckValidity(FValidityOptions::Permissive(), EValidityFailMode::Check), TEXT("Dynamic Mesh Check failed."));	// Cooked
+	//checkf(!DynamicMesh->CheckValidity(ValidityOptions), TEXT("Dynamic Mesh Check failed.")); // Don't need because terrain isn't generated yet
 
-	// Generation loop
-	for (int Vertex : DynamicMesh->VertexIndicesItr()) {
-		if (TempMax > 100) {
-			break;
+	DynamicMesh->Clear();
+
+	const int Subdivisions = 10; // or higher
+
+	const float Size = 10000.0f;
+
+	const int32 NumX = Subdivisions + 1;
+	const int32 NumY = Subdivisions + 1;
+
+	const float Step = Size / Subdivisions;
+	const float HalfSize = Size / 2.0f;
+
+	// Generate vertices
+	for (int32 y = 0; y < NumY; ++y)
+	{
+		for (int32 x = 0; x < NumX; ++x)
+		{
+			float vx = -HalfSize + x * Step;
+			float vy = -HalfSize + y * Step;
+			float vz = 0.0f;
+			DynamicMesh->AppendVertex(FVector3d(vx, vy, vz));
 		}
-
-		FVector3d Pos = DynamicMesh->GetVertex(Vertex);	// Get the position of the vertex
-
-		// Sample 2D Perlin noise at XY, you can do 3D by passing FVector3d
-		double Displace = Noise->GetNoise(Pos.X, Pos.Y, Pos.Z) * NoiseScale;
-
-		checkf(!DynamicMesh, TEXT("Dynamic Mesh bad"));	// Check if dynamic mesh isn't a nullptr (used in highrisk areas)
-
-		/**Extra checks for line 89*/
-		checkf(!DynamicMesh->IsVertex(Vertex), TEXT("Vertex bad"));
-
-		// Get the normals so we can push along it
-		FVector3d Normal = DynamicMesh->HasVertexNormals()
-			? (FVector3d)DynamicMesh->GetVertexNormal(Vertex)	// If true do this
-			: FVector3d(0, 0, 1);	// Else do this
-
-		checkf(DynamicMesh != nullptr, TEXT("Dynamic Mesh invalid"));	// Check if dynamic mesh isn't a nullptr (used in highrisk areas)
-
-		// Displace
-		DynamicMesh->SetVertex(Vertex, Pos + Normal * (Displace * NoiseAmplitude));
-
-		TempMax++;
 	}
 
-	/**Recalculate normals*/
-	UE::Geometry::FMeshNormals Normals(&*DynamicMesh);
-	Normals.ComputeVertexNormals();
-	Normals.CopyToOverlay(DynamicMesh->Attributes()->PrimaryNormals());
+	// Generate triangles
+	for (int32 y = 0; y < Subdivisions; ++y)
+	{
+		for (int32 x = 0; x < Subdivisions; ++x)
+		{
+			int32 v0 = x + y * NumX;
+			int32 v1 = (x + 1) + y * NumX;
+			int32 v2 = x + (y + 1) * NumX;
+			int32 v3 = (x + 1) + (y + 1) * NumX;
+
+			// Two triangles per grid square
+			DynamicMesh->AppendTriangle(v0, v2, v1);
+			DynamicMesh->AppendTriangle(v1, v2, v3);
+		}
+	}
+
+	//// Compute normals
+	//UE::Geometry::FMeshNormals Normals(&*DynamicMesh);
+	//Normals.ComputeVertexNormals();
+	//Normals.CopyToOverlay(DynamicMesh->Attributes()->PrimaryNormals());
 
 	DynamicMeshComponent->NotifyMeshUpdated();
 }

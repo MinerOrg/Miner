@@ -76,4 +76,10 @@ private:
 	* 6 = FractalType_DomainWarpIndependent
 	*/
 	int NoiseFractalType = FastNoiseLite::FractalType_FBm;
+
+	// Validity check options
+	FDynamicMesh3::FValidityOptions ValidityOptions = {
+		false,
+		false
+	};
 };
