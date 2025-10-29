@@ -6,7 +6,6 @@
 #include "DynamicMesh/DynamicMesh3.h"	
 #include "DynamicMesh/MeshNormals.h"
 #include "GeometryTypes.h"
-#include "DynamicMesh/MeshNormals.h"
 
 /*
 * CONSTRUCTOR
@@ -125,6 +124,7 @@ void AWorldLandscape::GenerateTerrain()
 	//Normals.CopyToOverlay(DynamicMesh->Attributes()->PrimaryNormals());
 
 	DynamicMeshComponent->NotifyMeshUpdated();
+	
 }
 
 void AWorldLandscape::LoadTerrainFromSave()

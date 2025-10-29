@@ -43,7 +43,6 @@ protected:
 	TObjectPtr<AMinerGameMode> GameMode;
 
 	/**Dynamic mesh variables*/
-	TObjectPtr<UDynamicMeshComponent> DynamicMeshComponent;
 	FDynamicMesh3* DynamicMesh = nullptr;
 
 private:
