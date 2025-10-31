@@ -1,19 +1,17 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 
 #include "CoreMinimal.h"
-#include "DynamicMeshActor.h"
-#include "FastNoiseLite.h"
+#include "UDynamicMesh.h"
+#include "Components/DynamicMeshComponent.h"
 #include "WorldLandscape.generated.h"
 
-class AMinerGameMode;
-
 /**
- * TERRAIN CLASS
+ * AWorldLandscape is an Actor that has a USimpleDynamicMeshComponent as it's RootObject.
  */
 UCLASS()
-class MINER_API AWorldLandscape : public ADynamicMeshActor
+class AWorldLandscape : public AActor
 {
 	GENERATED_BODY()
 
@@ -21,64 +19,49 @@ public:
 	AWorldLandscape();
 
 protected:
-	/**
-	* Overriden functions
-	*/
+	UPROPERTY(Category = DynamicMeshActor, VisibleAnywhere, BlueprintReadOnly, meta = (ExposeFunctionCategories = "Mesh,Rendering,Physics,Components|StaticMesh", AllowPrivateAccess = "true"))
+	TObjectPtr<class UDynamicMeshComponent> DynamicMeshComponent;
 
-	virtual void BeginPlay() override;
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+public:
+	UFUNCTION(BlueprintCallable, Category = DynamicMeshActor)
+	UDynamicMeshComponent* GetDynamicMeshComponent() const { return DynamicMeshComponent; }
 
-	/**
-	* Helper functions
-	*/
 
-	void GenerateTerrain(); // Generate terrain based on noise
-	void LoadTerrainFromSave(); // Load terrain from save file
 
-	/**
-	*Other Variables
-	*/
+	//
+	// Mesh Pool support. Meshes can be locally allocated from the Mesh Pool
+	// in Blueprints, and then released back to the Pool and re-used. This
+	// avoids generating temporary UDynamicMesh instances that need to be
+	// garbage-collected. See UDynamicMeshPool for more details.
+	//
 
-	/**References to other classes*/
-	TObjectPtr<AMinerGameMode> GameMode;
+public:
+	/** Control whether the DynamicMeshPool will be created when requested via GetComputeMeshPool() */
+	UPROPERTY(Category = "DynamicMeshActor|Advanced", EditAnywhere, BlueprintReadWrite)
+	bool bEnableComputeMeshPool = true;
+protected:
+	/** The internal Mesh Pool, for use in DynamicMeshActor BPs. Use GetComputeMeshPool() to access this, as it will only be created on-demand if bEnableComputeMeshPool = true */
+	UPROPERTY(Transient)
+	TObjectPtr<UDynamicMeshPool> DynamicMeshPool;
 
-	/**Dynamic mesh variables*/
-	FDynamicMesh3* DynamicMesh = nullptr;
+public:
+	/** Access the compute mesh pool */
+	UFUNCTION(BlueprintCallable, Category = DynamicMeshActor)
+	UDynamicMeshPool* GetComputeMeshPool();
 
-private:
-	/**Noise parameters*/
-	FastNoiseLite* Noise = nullptr;	// The actual noise variable
+	/** Request a compute mesh from the Pool, which will return a previously-allocated mesh or add and return a new one. If the Pool is disabled, a new UDynamicMesh will be allocated and returned. */
+	UFUNCTION(BlueprintCallable, Category = DynamicMeshActor)
+	UDynamicMesh* AllocateComputeMesh();
+	
+	/** Release a compute mesh back to the Pool */
+	UFUNCTION(BlueprintCallable, Category = DynamicMeshActor)
+	bool ReleaseComputeMesh(UDynamicMesh* Mesh);
 
-	UPROPERTY(EditAnywhere, Category = "World Gen")
-	float NoiseScale = 0.1f;	// Scale of the noise
-	UPROPERTY(EditAnywhere, Category="World Gen")
-	float NoiseAmplitude = 20.0f;
-	UPROPERTY(EditAnywhere, Category = "World Gen")
-	float NoiseFrequencey = 0.03f;
-	UPROPERTY(EditAnywhere, Category = "World Gen")
-	/**
-	* 1 = NoiseType_OpenSimplex2
-	* 2 = NoiseType_OpenSimplex2S
-	* 3 = NoiseType_Cellular
-	* 4 = NoiseType_Perlin
-	* 5 = NoiseType_ValueCubic
-	* 6 = NoiseType_Value
-	*/
-	int NoiseNoiseType = FastNoiseLite::NoiseType_Perlin;
-	UPROPERTY(EditAnywhere, Category = "World Gen")
-	/**
-	* 1 = FractalType_None
-	* 2 = FractalType_FBm
-	* 3 = FractalType_Ridged
-	* 4 = FractalType_PingPong
-	* 5 = FractalType_DomainWarpProgressive
-	* 6 = FractalType_DomainWarpIndependent
-	*/
-	int NoiseFractalType = FastNoiseLite::FractalType_FBm;
+	/** Release all compute meshes that the Pool has allocated */
+	UFUNCTION(BlueprintCallable, Category = DynamicMeshActor)
+	void ReleaseAllComputeMeshes();
 
-	// Validity check options
-	FDynamicMesh3::FValidityOptions ValidityOptions = {
-		false,
-		false
-	};
+	/** Release all compute meshes that the Pool has allocated, and then release them from the Pool, so that they will be garbage-collected */
+	UFUNCTION(BlueprintCallable, Category = DynamicMeshActor)
+	void FreeAllComputeMeshes();
 };
