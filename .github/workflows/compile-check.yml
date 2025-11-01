@@ -1,23 +1,41 @@
-name: Unreal Engine Compile Check
+name: Unreal Code Compile Check
 
 on:
-  push:
   pull_request:
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/adamrehn/ue4-full:5.3  # or ue5-full:5.3 if using UE5+
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+  compile:
+    runs-on: windows-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Verify engine is available
-        run: ue4 version
+      - name: Setup MSVC build environment
+        uses: ilammy/msvc-dev-cmd@v1
 
-      - name: Compile Unreal Project
-        run: ue4 build "$PWD/MyGame.uproject" Development Linux
+      - name: Find C++ source files
+        id: src
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem -Recurse -Include *.cpp | ForEach-Object { $_.FullName }
+          "files=$($files -join ' ')" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Compile all C++ files (syntax only)
+        shell: pwsh
+        run: |
+          $files = "${{ steps.src.outputs.files }}"
+          if (-not $files) {
+            Write-Host "No .cpp files found"
+            exit 0
+          }
+
+          # Create output dir
+          mkdir build -Force | Out-Null
+
+          # Try compiling to .obj (object) files, without linking
+          foreach ($f in $files.Split(' ')) {
+            Write-Host "Compiling $f"
+            cl.exe /c "$f" /Fo"build\" /EHsc /std:c++20
+            if ($LASTEXITCODE -ne 0) { exit 1 }
+          }
