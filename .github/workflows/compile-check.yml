@@ -1,7 +1,7 @@
 name: Unreal Engine Compile Check
 
 on:
-  push:
+  #push: # Only Pull_Request for now
   pull_request:
 
 jobs:
