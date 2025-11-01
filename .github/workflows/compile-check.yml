@@ -1,0 +1,41 @@
+name: Unreal Engine Compile Check
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Visual Studio
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Set up Unreal Engine
+        # You'll need to have the UE source checked out or preinstalled in a known path
+        # For example, if using a private UE5 repo via Epic, you can clone it in setup.
+        run: |
+          echo "Downloading or setting up Unreal Engine..."
+          # Example: you could use a cached prebuilt engine if you host one internally
+          # Or you can skip this if the repo already includes the Engine folder
+
+      - name: Compile the project
+        shell: pwsh
+        run: |
+          # Replace with your project name and path
+          $ProjectName = "MyGame"
+          $ProjectFile = "MyGame.uproject"
+          $EnginePath = "C:\Program Files\Epic Games\UE_5.3"  # Adjust for your version
+
+          & "$EnginePath\Engine\Build\BatchFiles\Build.bat" $ProjectNameEditor Win64 Development -project="$PWD\$ProjectFile" -waitmutex -NoHotReloadFromIDE
+      - name: Cache intermediate build
+        uses: actions/cache@v4
+        with:
+          path: |
+            Intermediate
+            Binaries
+          key: ${{ runner.os }}-${{ hashFiles('Source/**') }}
