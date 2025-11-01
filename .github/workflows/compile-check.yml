@@ -10,8 +10,8 @@ jobs:
     container:
       image: ghcr.io/adamrehn/ue4-full:5.3  # or ue5-full:5.3 if using UE5+
       credentials:
-        username: ${{ secrets.GHCR_USERNAME }}
-        password: ${{ secrets.GHCR_TOKEN }}
+        username: ${{ secrets.GITHUB_USERNAME }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
