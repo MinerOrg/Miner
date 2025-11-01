@@ -10,7 +10,7 @@ jobs:
     container:
       image: ghcr.io/adamrehn/ue4-full:5.3  # or ue5-full:5.3 if using UE5+
       credentials:
-        username: ${{ secrets.GITHUB_USERNAME }}
+        username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout repository
