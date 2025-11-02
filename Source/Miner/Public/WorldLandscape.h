@@ -4,13 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "UDynamicMesh.h"
-#include "Components/DynamicMeshComponent.h"
+#include "Components/OctreeDynamicMeshComponent.h"
 #include "WorldLandscape.generated.h"
 
 /**
- * AWorldLandscape is an Actor that has a USimpleDynamicMeshComponent as it's RootObject.
+ * AWorldLandscape is an Actor that generates a dynamic landscape mesh based on a seed
  */
-UCLASS()
+
+UCLASS(ConversionRoot, ComponentWrapperClass, ClassGroup = DynamicMesh, meta = (ChildCanTick), MinimalAPI)
 class AWorldLandscape : public AActor
 {
 	GENERATED_BODY()
@@ -19,7 +20,7 @@ public:
 	AWorldLandscape();
 
 	UFUNCTION(BlueprintCallable, Category = DynamicMeshActor)
-	UDynamicMeshComponent* GetDynamicMeshComponent() const { return DynamicMeshComponent; }
+	UOctreeDynamicMeshComponent* GetDynamicMeshComponent() const { return DynamicMeshComponent; }
 
 	//
 	// Mesh Pool support. Meshes can be locally allocated from the Mesh Pool
@@ -53,7 +54,7 @@ public:
 	void FreeAllComputeMeshes();
 protected:
 	UPROPERTY(Category = DynamicMeshActor, VisibleAnywhere, BlueprintReadOnly, meta = (ExposeFunctionCategories = "Mesh,Rendering,Physics,Components|StaticMesh", AllowPrivateAccess = "true"))
-	TObjectPtr<class UDynamicMeshComponent> DynamicMeshComponent;
+	TObjectPtr<class UOctreeDynamicMeshComponent> DynamicMeshComponent;
 
 	/** The internal Mesh Pool, for use in DynamicMeshActor BPs. Use GetComputeMeshPool() to access this, as it will only be created on-demand if bEnableComputeMeshPool = true */
 	UPROPERTY(Transient)

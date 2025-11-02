@@ -7,12 +7,12 @@
 
 AWorldLandscape::AWorldLandscape()
 {
-	DynamicMeshComponent = CreateDefaultSubobject<UDynamicMeshComponent>(TEXT("DynamicMeshComponent"));
+	DynamicMeshComponent = CreateDefaultSubobject<UOctreeDynamicMeshComponent>(TEXT("DynamicMeshComponent"));
 	DynamicMeshComponent->SetMobility(EComponentMobility::Movable);
 	DynamicMeshComponent->SetGenerateOverlapEvents(false);
 	DynamicMeshComponent->SetCollisionProfileName(UCollisionProfile::BlockAll_ProfileName);
 
-	DynamicMeshComponent->CollisionType = ECollisionTraceFlag::CTF_UseDefault;
+	//DynamicMeshComponent->CollisionType = ECollisionTraceFlag::CTF_UseDefault;
 
 	DynamicMeshComponent->SetMaterial(0, UMaterial::GetDefaultMaterial(MD_Surface));		// is this necessary?
 

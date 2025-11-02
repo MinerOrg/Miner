@@ -32,7 +32,8 @@ public class Miner : ModuleRules
 			"GeometryFramework",
 			"GeometryCore",
 			"DynamicMesh",
-	});
+            "ModelingComponents"
+    });
 
 		PublicIncludePaths.AddRange(new string[] {
 			"Miner",
