@@ -1,9 +1,12 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright me
 
 #include "WorldLandscape.h"
 #include "Engine/CollisionProfile.h"
 #include "MaterialDomain.h"
 #include "Materials/Material.h"
+#include "Kismet/GameplayStatics.h"
+#include "FastNoiseLite.h"
+#include "WorldGameMode.h"
 
 AWorldLandscape::AWorldLandscape()
 {
@@ -13,12 +16,36 @@ AWorldLandscape::AWorldLandscape()
 	DynamicMeshComponent->SetCollisionProfileName(UCollisionProfile::BlockAll_ProfileName);
 
 	//DynamicMeshComponent->CollisionType = ECollisionTraceFlag::CTF_UseDefault;
+	DynamicMeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	DynamicMeshComponent->SetCollisionResponseToAllChannels(ECR_Block);
 
-	DynamicMeshComponent->SetMaterial(0, UMaterial::GetDefaultMaterial(MD_Surface));		// is this necessary?
+	DynamicMeshComponent->SetMaterial(0, UMaterial::GetDefaultMaterial(MD_Surface));		// is this necessary?	(I don't know, you guys made the engine) - Me
 
 	SetRootComponent(DynamicMeshComponent);
 }
 
+void AWorldLandscape::BeginPlay()
+{
+	Super::BeginPlay();
+
+	Noise = new FastNoiseLite(Cast<AWorldGameMode>(UGameplayStatics::GetGameMode(GetWorld()))->Seed);
+
+	GenerateTerrain();
+}
+
+void AWorldLandscape::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+
+	FreeAllComputeMeshes();
+}
+
+void AWorldLandscape::GenerateTerrain()
+{
+	checkf(IsValid(DynamicMeshComponent), TEXT("Dynamic Mesh Component was bad"));
+
+	DynamicMesh->Clear();
+}
 
 UDynamicMeshPool* AWorldLandscape::GetComputeMeshPool()
 {

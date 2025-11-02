@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright = me
 
 #pragma once
 
@@ -10,6 +10,8 @@
 /**
  * AWorldLandscape is an Actor that generates a dynamic landscape mesh based on a seed
  */
+
+class FastNoiseLite;
 
 UCLASS(ConversionRoot, ComponentWrapperClass, ClassGroup = DynamicMesh, meta = (ChildCanTick), MinimalAPI)
 class AWorldLandscape : public AActor
@@ -53,10 +55,19 @@ public:
 	UFUNCTION(BlueprintCallable, Category = DynamicMeshActor)
 	void FreeAllComputeMeshes();
 protected:
+	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+	void GenerateTerrain();
+
 	UPROPERTY(Category = DynamicMeshActor, VisibleAnywhere, BlueprintReadOnly, meta = (ExposeFunctionCategories = "Mesh,Rendering,Physics,Components|StaticMesh", AllowPrivateAccess = "true"))
 	TObjectPtr<class UOctreeDynamicMeshComponent> DynamicMeshComponent;
+
+	FDynamicMesh3* DynamicMesh = nullptr;
 
 	/** The internal Mesh Pool, for use in DynamicMeshActor BPs. Use GetComputeMeshPool() to access this, as it will only be created on-demand if bEnableComputeMeshPool = true */
 	UPROPERTY(Transient)
 	TObjectPtr<UDynamicMeshPool> DynamicMeshPool;
+
+	FastNoiseLite* Noise = nullptr;
 };
