@@ -19,17 +19,21 @@ AWorldLandscape::AWorldLandscape()
 	DynamicMeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	DynamicMeshComponent->SetCollisionResponseToAllChannels(ECR_Block);
 
+	DynamicMeshComponent->SetSimulatePhysics(true);
+	DynamicMeshComponent->SetEnableGravity(false);
+
 	DynamicMeshComponent->SetMaterial(0, UMaterial::GetDefaultMaterial(MD_Surface));		// is this necessary?	(I don't know, you guys made the engine) - Me
 
 	SetRootComponent(DynamicMeshComponent);
+
+	Noise = new FastNoiseLite();
 }
 
 void AWorldLandscape::BeginPlay()
 {
 	Super::BeginPlay();
 
-	Noise = new FastNoiseLite(Cast<AWorldGameMode>(UGameplayStatics::GetGameMode(GetWorld()))->Seed);
-
+	SetupNoise();
 	GenerateTerrain();
 }
 
@@ -40,11 +44,34 @@ void AWorldLandscape::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	FreeAllComputeMeshes();
 }
 
+void AWorldLandscape::SetupNoise()
+{
+	Seed = Cast<AWorldGameMode>(UGameplayStatics::GetGameMode(GetWorld()))->Seed;
+
+	Noise->SetSeed(Seed);
+	Noise->SetFrequency(Frequency);
+	Noise->SetNoiseType(static_cast<FastNoiseLite::NoiseType>(NoiseType.GetValue()));
+	Noise->SetRotationType3D(static_cast<FastNoiseLite::RotationType3D>(RotationType3D.GetValue()));
+	Noise->SetFractalType(static_cast<FastNoiseLite::FractalType>(FractalType.GetValue()));
+	Noise->SetFractalOctaves(FractalOctaves);
+	Noise->SetFractalLacunarity(FractalLacunarity);
+	Noise->SetFractalGain(FractalGain);
+	Noise->SetFractalWeightedStrength(FractalWeightedStrength);
+	Noise->SetFractalPingPongStrength(FractalPingPongStrength);
+	Noise->SetCellularDistanceFunction(static_cast<FastNoiseLite::CellularDistanceFunction>(CellularDistanceFunction.GetValue()));
+	Noise->SetCellularReturnType(static_cast<FastNoiseLite::CellularReturnType>(CellularReturnType.GetValue()));
+	Noise->SetCellularJitter(CellularJitter);
+	Noise->SetDomainWarpType(static_cast<FastNoiseLite::DomainWarpType>(DomainWarpType.GetValue()));
+	Noise->SetDomainWarpAmp(DomainWarpAmp);
+}
+
 void AWorldLandscape::GenerateTerrain()
 {
 	checkf(IsValid(DynamicMeshComponent), TEXT("Dynamic Mesh Component was bad"));
 
 	DynamicMesh->Clear();
+
+	DynamicMeshComponent->NotifyMeshUpdated();
 }
 
 UDynamicMeshPool* AWorldLandscape::GetComputeMeshPool()

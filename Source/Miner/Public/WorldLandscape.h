@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "UDynamicMesh.h"
 #include "Components/OctreeDynamicMeshComponent.h"
+#include "FastNoiseLiteTypes.h"
 #include "WorldLandscape.generated.h"
 
 /**
@@ -54,10 +55,12 @@ public:
 	/** Release all compute meshes that the Pool has allocated, and then release them from the Pool, so that they will be garbage-collected */
 	UFUNCTION(BlueprintCallable, Category = DynamicMeshActor)
 	void FreeAllComputeMeshes();
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
+	void SetupNoise();
 	void GenerateTerrain();
 
 	UPROPERTY(Category = DynamicMeshActor, VisibleAnywhere, BlueprintReadOnly, meta = (ExposeFunctionCategories = "Mesh,Rendering,Physics,Components|StaticMesh", AllowPrivateAccess = "true"))
@@ -70,4 +73,50 @@ protected:
 	TObjectPtr<UDynamicMeshPool> DynamicMeshPool;
 
 	FastNoiseLite* Noise = nullptr;
+
+private:
+	UPROPERTY(EditAnywhere, Category = "Noise")
+	int Seed = 1337;
+
+	UPROPERTY(EditAnywhere, Category = "Noise")
+	float Frequency = 0.03f;
+
+	UPROPERTY(EditAnywhere, Category = "Noise")
+	TEnumAsByte<FastNoiseLiteTypes_NoiseType> NoiseType = NoiseType_Perlin;
+
+	UPROPERTY(EditAnywhere, Category = "Noise")
+	TEnumAsByte<FastNoiseLiteTypes_RotationType3D> RotationType3D = RotationType3D_None;
+
+	UPROPERTY(EditAnywhere, Category = "Noise")
+	TEnumAsByte<FastNoiseLiteTypes_FractalType> FractalType = FractalType_FBm;
+
+	UPROPERTY(EditAnywhere, Category = "Noise")
+	int FractalOctaves = 3;
+
+	UPROPERTY(EditAnywhere, Category = "Noise")
+	float FractalLacunarity = 2.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Noise")
+	float FractalGain = 0.5f;
+
+	UPROPERTY(EditAnywhere, Category = "Noise")
+	float FractalWeightedStrength = 0.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Noise")
+	float FractalPingPongStrength = 2.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Noise")
+	TEnumAsByte<FastNoiseLiteTypes_CellularDistanceFunction> CellularDistanceFunction = CellularDistanceFunction_EuclideanSq;
+
+	UPROPERTY(EditAnywhere, Category = "Noise")
+	TEnumAsByte<FastNoiseLiteTypes_CellularReturnType> CellularReturnType = CellularReturnType_Distance;
+
+	UPROPERTY(EditAnywhere, Category = "Noise")
+	float CellularJitter = 1.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Noise")
+	TEnumAsByte<FastNoiseLiteTypes_DomainWarpType> DomainWarpType = DomainWarpType_OpenSimplex2;
+
+	UPROPERTY(EditAnywhere, Category = "Noise")
+	float DomainWarpAmp = 1.0f;
 };
