@@ -41,6 +41,10 @@ void AWorldLandscape::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
 
+	check(Noise);
+	delete Noise;
+	Noise = nullptr;
+
 	FreeAllComputeMeshes();
 }
 
@@ -68,10 +72,30 @@ void AWorldLandscape::SetupNoise()
 void AWorldLandscape::GenerateTerrain()
 {
 	checkf(IsValid(DynamicMeshComponent), TEXT("Dynamic Mesh Component was bad"));
-
+	
 	DynamicMesh->Clear();
 
+	float TmpSize = 10.f;
+	float HeightScale = 10;
+
+	for (float x = -TmpSize; x <= TmpSize; (x + Resolution)) {
+		for (float y = -TmpSize; y <= TmpSize; (y + Resolution)) {
+			float NoiseValue = Noise->GetNoise(x, y) * HeightScale;
+			FVector V0 = FVector(x, y, NoiseValue);
+			FVector V1 = FVector(x + Resolution, y, Noise->GetNoise((x + Resolution), y) * HeightScale);
+			FVector V2 = FVector(x, y + Resolution, Noise->GetNoise(x, (y + Resolution)) * HeightScale);
+			FVector V3 = FVector(x + Resolution, y + Resolution, Noise->GetNoise((x + Resolution), (y + Resolution)) * HeightScale);
+			int32 V0ID = DynamicMesh->AppendVertex(V0);
+			int32 V1ID = DynamicMesh->AppendVertex(V1);
+			int32 V2ID = DynamicMesh->AppendVertex(V2);
+			int32 V3ID = DynamicMesh->AppendVertex(V3);
+			DynamicMesh->AppendTriangle(V0ID, V2ID, V1ID);
+			DynamicMesh->AppendTriangle(V1ID, V2ID, V3ID);
+		}
+	}
+
 	DynamicMeshComponent->NotifyMeshUpdated();
+	DynamicMeshComponent->UpdateCollisionProfile();
 }
 
 UDynamicMeshPool* AWorldLandscape::GetComputeMeshPool()

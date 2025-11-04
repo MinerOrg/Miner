@@ -119,4 +119,7 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Noise")
 	float DomainWarpAmp = 1.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Landscape", meta = (ToolTip = "How much distance to go until checking the noise again."))
+	float Resolution = 1.0;
 };
