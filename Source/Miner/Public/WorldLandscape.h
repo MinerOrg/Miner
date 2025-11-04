@@ -6,7 +6,6 @@
 #include "UDynamicMesh.h"
 #include "Components/OctreeDynamicMeshComponent.h"
 #include "FastNoiseLiteTypes.h"
-#include "FastNoiseLite.h"
 #include "WorldLandscape.generated.h"
 
 /**
@@ -67,13 +66,14 @@ protected:
 	UPROPERTY(Category = DynamicMeshActor, VisibleAnywhere, BlueprintReadOnly, meta = (ExposeFunctionCategories = "Mesh,Rendering,Physics,Components|StaticMesh", AllowPrivateAccess = "true"))
 	TObjectPtr<class UOctreeDynamicMeshComponent> DynamicMeshComponent;
 
-	UDynamicMesh DynamicMesh;
+	UPROPERTY(Transient)
+	TObjectPtr<UDynamicMesh> DynamicMesh;
 
 	/** The internal Mesh Pool, for use in DynamicMeshActor BPs. Use GetComputeMeshPool() to access this, as it will only be created on-demand if bEnableComputeMeshPool = true */
 	UPROPERTY(Transient)
 	TObjectPtr<UDynamicMeshPool> DynamicMeshPool;
 
-	FastNoiseLite Noise;
+	TObjectPtr<FastNoiseLite> Noise;
 
 private:
 	UPROPERTY(EditAnywhere, Category = "Noise")

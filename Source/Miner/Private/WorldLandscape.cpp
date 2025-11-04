@@ -44,51 +44,51 @@ void AWorldLandscape::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void AWorldLandscape::SetupNoise()
 {
-	Noise = FastNoiseLite();
+	Noise = new FastNoiseLite();
 
 	Seed = Cast<AWorldGameMode>(UGameplayStatics::GetGameMode(GetWorld()))->Seed;
 
-	Noise.SetSeed(Seed);
-	Noise.SetFrequency(Frequency);
-	Noise.SetNoiseType(static_cast<FastNoiseLite::NoiseType>(NoiseType.GetValue()));
-	Noise.SetRotationType3D(static_cast<FastNoiseLite::RotationType3D>(RotationType3D.GetValue()));
-	Noise.SetFractalType(static_cast<FastNoiseLite::FractalType>(FractalType.GetValue()));
-	Noise.SetFractalOctaves(FractalOctaves);
-	Noise.SetFractalLacunarity(FractalLacunarity);
-	Noise.SetFractalGain(FractalGain);
-	Noise.SetFractalWeightedStrength(FractalWeightedStrength);
-	Noise.SetFractalPingPongStrength(FractalPingPongStrength);
-	Noise.SetCellularDistanceFunction(static_cast<FastNoiseLite::CellularDistanceFunction>(CellularDistanceFunction.GetValue()));
-	Noise.SetCellularReturnType(static_cast<FastNoiseLite::CellularReturnType>(CellularReturnType.GetValue()));
-	Noise.SetCellularJitter(CellularJitter);
-	Noise.SetDomainWarpType(static_cast<FastNoiseLite::DomainWarpType>(DomainWarpType.GetValue()));
-	Noise.SetDomainWarpAmp(DomainWarpAmp);
+	Noise->SetSeed(Seed);
+	Noise->SetFrequency(Frequency);
+	Noise->SetNoiseType(static_cast<FastNoiseLite::NoiseType>(NoiseType.GetValue()));
+	Noise->SetRotationType3D(static_cast<FastNoiseLite::RotationType3D>(RotationType3D.GetValue()));
+	Noise->SetFractalType(static_cast<FastNoiseLite::FractalType>(FractalType.GetValue()));
+	Noise->SetFractalOctaves(FractalOctaves);
+	Noise->SetFractalLacunarity(FractalLacunarity);
+	Noise->SetFractalGain(FractalGain);
+	Noise->SetFractalWeightedStrength(FractalWeightedStrength);
+	Noise->SetFractalPingPongStrength(FractalPingPongStrength);
+	Noise->SetCellularDistanceFunction(static_cast<FastNoiseLite::CellularDistanceFunction>(CellularDistanceFunction.GetValue()));
+	Noise->SetCellularReturnType(static_cast<FastNoiseLite::CellularReturnType>(CellularReturnType.GetValue()));
+	Noise->SetCellularJitter(CellularJitter);
+	Noise->SetDomainWarpType(static_cast<FastNoiseLite::DomainWarpType>(DomainWarpType.GetValue()));
+	Noise->SetDomainWarpAmp(DomainWarpAmp);
 }
 
 void AWorldLandscape::GenerateTerrain()
 {
 	checkf(IsValid(DynamicMeshComponent), TEXT("Dynamic Mesh Component was bad"));
-	checkf(DynamicMesh.IsValidLowLevel(), TEXT("Dynamic Mesh was bad"));
+	checkf(IsValid(DynamicMesh), TEXT("Dynamic Mesh was bad"));
 	
-	DynamicMesh.GetMeshPtr()->Clear();
+	DynamicMesh->GetMeshPtr()->Clear();
 
 	float TmpSize = 10.f;
 	float HeightScale = 10;
 
 	for (float x = -TmpSize; x <= TmpSize; x += Resolution) {
 		for (float y = -TmpSize; y <= TmpSize; y += Resolution) {
-			float NoiseValue = Noise.GetNoise(x, y) * HeightScale;
+			float NoiseValue = Noise->GetNoise(x, y) * HeightScale;
 			FVector V0 = FVector(x, y, NoiseValue);
-			FVector V1 = FVector(x + Resolution, y, Noise.GetNoise((x + Resolution), y) * HeightScale);
-			FVector V2 = FVector(x, y + Resolution, Noise.GetNoise(x, (y + Resolution)) * HeightScale);
-			FVector V3 = FVector(x + Resolution, y + Resolution, Noise.GetNoise((x + Resolution), (y + Resolution)) * HeightScale);
-			int32 V0ID = DynamicMesh.GetMeshPtr()->AppendVertex(V0);
-			int32 V1ID = DynamicMesh.GetMeshPtr()->AppendVertex(V1);
-			int32 V2ID = DynamicMesh.GetMeshPtr()->AppendVertex(V2);
-			int32 V3ID = DynamicMesh.GetMeshPtr()->AppendVertex(V3);
+			FVector V1 = FVector(x + Resolution, y, Noise->GetNoise((x + Resolution), y) * HeightScale);
+			FVector V2 = FVector(x, y + Resolution, Noise->GetNoise(x, (y + Resolution)) * HeightScale);
+			FVector V3 = FVector(x + Resolution, y + Resolution, Noise->GetNoise((x + Resolution), (y + Resolution)) * HeightScale);
+			int32 V0ID = DynamicMesh->GetMeshPtr()->AppendVertex(V0);
+			int32 V1ID = DynamicMesh->GetMeshPtr()->AppendVertex(V1);
+			int32 V2ID = DynamicMesh->GetMeshPtr()->AppendVertex(V2);
+			int32 V3ID = DynamicMesh->GetMeshPtr()->AppendVertex(V3);
 
-			DynamicMesh.GetMeshPtr()->AppendTriangle(V0ID, V2ID, V1ID);
-			DynamicMesh.GetMeshPtr()->AppendTriangle(V1ID, V2ID, V3ID);
+			DynamicMesh->GetMeshPtr()->AppendTriangle(V0ID, V2ID, V1ID);
+			DynamicMesh->GetMeshPtr()->AppendTriangle(V1ID, V2ID, V3ID);
 		}
 	}
 
