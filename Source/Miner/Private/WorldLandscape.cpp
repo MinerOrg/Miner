@@ -10,19 +10,20 @@
 
 AWorldLandscape::AWorldLandscape()
 {
+	bReplicates = true;
+
 	DynamicMeshComponent = CreateDefaultSubobject<UOctreeDynamicMeshComponent>(TEXT("DynamicMeshComponent"));
 	DynamicMeshComponent->SetMobility(EComponentMobility::Movable);
 	DynamicMeshComponent->SetGenerateOverlapEvents(false);
 	DynamicMeshComponent->SetCollisionProfileName(UCollisionProfile::BlockAll_ProfileName);
 
-	//DynamicMeshComponent->CollisionType = ECollisionTraceFlag::CTF_UseDefault;
 	DynamicMeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	DynamicMeshComponent->SetCollisionResponseToAllChannels(ECR_Block);
 
 	DynamicMeshComponent->SetSimulatePhysics(true);
 	DynamicMeshComponent->SetEnableGravity(false);
 
-	DynamicMeshComponent->SetMaterial(0, UMaterial::GetDefaultMaterial(MD_Surface));		// is this necessary?	(I don't know, you guys made the engine) - Me
+	DynamicMeshComponent->SetMaterial(0, UMaterial::GetDefaultMaterial(MD_Surface));
 
 	SetRootComponent(DynamicMeshComponent);
 }
@@ -30,6 +31,9 @@ AWorldLandscape::AWorldLandscape()
 void AWorldLandscape::BeginPlay()
 {
 	Super::BeginPlay();
+
+	DynamicMesh = AllocateComputeMesh();
+	DynamicMeshComponent->SetDynamicMesh(DynamicMesh);
 
 	SetupNoise();
 	GenerateTerrain();
@@ -46,7 +50,8 @@ void AWorldLandscape::SetupNoise()
 {
 	Noise = new FastNoiseLite();
 
-	Seed = Cast<AWorldGameMode>(UGameplayStatics::GetGameMode(GetWorld()))->Seed;
+	if (UGameplayStatics::GetGameMode(GetWorld()) != nullptr)	{ Seed = CastChecked<AWorldGameMode>(UGameplayStatics::GetGameMode(GetWorld()))->Seed;	}
+	else { UE_LOG(LogTemp, Warning, TEXT("SetupNoise: GetGameMode() returned null (client). Ensure Seed is replicated via GameState or actor property.")); }
 
 	Noise->SetSeed(Seed);
 	Noise->SetFrequency(Frequency);
@@ -72,25 +77,67 @@ void AWorldLandscape::GenerateTerrain()
 	
 	DynamicMesh->GetMeshPtr()->Clear();
 
-	float TmpSize = 10.f;
-	float HeightScale = 10;
+	const float TmpHalfSize = 1000.f;
+	const float HeightScale = 100.0f;
+	const int NumPointsPerLine = FMath::FloorToInt((TmpHalfSize * 2.0f) / Resolution) + 1;
 
-	for (float x = -TmpSize; x <= TmpSize; x += Resolution) {
-		for (float y = -TmpSize; y <= TmpSize; y += Resolution) {
-			float NoiseValue = Noise->GetNoise(x, y) * HeightScale;
-			FVector V0 = FVector(x, y, NoiseValue);
-			FVector V1 = FVector(x + Resolution, y, Noise->GetNoise((x + Resolution), y) * HeightScale);
-			FVector V2 = FVector(x, y + Resolution, Noise->GetNoise(x, (y + Resolution)) * HeightScale);
-			FVector V3 = FVector(x + Resolution, y + Resolution, Noise->GetNoise((x + Resolution), (y + Resolution)) * HeightScale);
-			int32 V0ID = DynamicMesh->GetMeshPtr()->AppendVertex(V0);
-			int32 V1ID = DynamicMesh->GetMeshPtr()->AppendVertex(V1);
-			int32 V2ID = DynamicMesh->GetMeshPtr()->AppendVertex(V2);
-			int32 V3ID = DynamicMesh->GetMeshPtr()->AppendVertex(V3);
+	// reserve - use multiplication, not XOR
+	TArray<int32> Verticies;
+	int64 ReserveCount = (int64)NumPointsPerLine * (int64)NumPointsPerLine;
+	if (ReserveCount > TNumericLimits<int32>::Max()) ReserveCount = TNumericLimits<int32>::Max();
+	Verticies.Reserve((int32)ReserveCount);
 
-			DynamicMesh->GetMeshPtr()->AppendTriangle(V0ID, V2ID, V1ID);
-			DynamicMesh->GetMeshPtr()->AppendTriangle(V1ID, V2ID, V3ID);
+	// Use EditMesh so UDynamicMesh broadcasts change events correctly
+	DynamicMesh->EditMesh([&](UE::Geometry::FDynamicMesh3& Mesh)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Blue, "Ran correctly");
+
+		Mesh.Clear();
+
+		// create vertices in row-major order: x changes fastest
+		for (int iy = 0; iy < NumPointsPerLine; ++iy)
+		{
+			float y = -TmpHalfSize + iy * Resolution;
+			for (int ix = 0; ix < NumPointsPerLine; ++ix)
+			{
+				float x = -TmpHalfSize + ix * Resolution;
+
+				// sample noise (FastNoiseLite's GetNoise expects floats)
+				float h = 0.0f;
+				if (Noise)
+				{
+					h = Noise->GetNoise(x, y) * HeightScale;
+				}
+
+				// create vertex and remember its index
+				int32 NewVertID = Mesh.AppendVertex(FVector3d(x, y, h));
+				Verticies.Add(NewVertID);
+			}
 		}
-	}
+
+		// create two triangles for each quad in the grid
+		for (int iy = 0; iy < NumPointsPerLine - 1; ++iy)
+		{
+			for (int ix = 0; ix < NumPointsPerLine - 1; ++ix)
+			{
+				const int idx00 = ix + iy * NumPointsPerLine;             // this row/col
+				const int idx10 = (ix + 1) + iy * NumPointsPerLine;       // right
+				const int idx01 = ix + (iy + 1) * NumPointsPerLine;       // below
+				const int idx11 = (ix + 1) + (iy + 1) * NumPointsPerLine; // below-right
+
+				int v00 = Verticies[idx00];
+				int v10 = Verticies[idx10];
+				int v01 = Verticies[idx01];
+				int v11 = Verticies[idx11];
+
+				// First triangle (top-left, bottom-left, bottom-right)
+				Mesh.AppendTriangle(v00, v01, v11);
+
+				// Second triangle (top-left, bottom-right, top-right)
+				Mesh.AppendTriangle(v00, v11, v10);
+			}
+		}
+	}); // end EditMesh lambda
 
 	DynamicMeshComponent->NotifyMeshUpdated();
 	DynamicMeshComponent->UpdateCollisionProfile();

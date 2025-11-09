@@ -28,12 +28,12 @@ public class Miner : ModuleRules
 			"GameplayAbilities",
 			"GameplayTags",
 			"GameplayTasks",
-			/* The next 3 lines are for the dynamic terrain */
+			/* The next 4 lines are for the dynamic terrain */
 			"GeometryFramework",
 			"GeometryCore",
 			"DynamicMesh",
             "ModelingComponents"
-    });
+		});
 
 		PublicIncludePaths.AddRange(new string[] {
 			"Miner",
