@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UDynamicMesh.h"
-#include "Components/OctreeDynamicMeshComponent.h"
+#include "Components/DynamicMeshComponent.h"
 #include "FastNoiseLiteTypes.h"
 #include "WorldLandscape.generated.h"
 
@@ -23,7 +23,7 @@ public:
 	AWorldLandscape();
 
 	UFUNCTION(BlueprintCallable, Category = DynamicMeshActor)
-	UOctreeDynamicMeshComponent* GetDynamicMeshComponent() const { return DynamicMeshComponent; }
+	UDynamicMeshComponent* GetDynamicMeshComponent() const { return DynamicMeshComponent; }
 
 	//
 	// Mesh Pool support. Meshes can be locally allocated from the Mesh Pool
@@ -64,7 +64,7 @@ protected:
 	void GenerateTerrain();
 
 	UPROPERTY(Category = DynamicMeshActor, VisibleAnywhere, BlueprintReadOnly, meta = (ExposeFunctionCategories = "Mesh,Rendering,Physics,Components|StaticMesh", AllowPrivateAccess = "true"))
-	TObjectPtr<class UOctreeDynamicMeshComponent> DynamicMeshComponent;
+	TObjectPtr<class UDynamicMeshComponent> DynamicMeshComponent;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UDynamicMesh> DynamicMesh;

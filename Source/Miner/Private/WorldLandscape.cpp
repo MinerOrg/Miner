@@ -1,4 +1,4 @@
-// Copyright me
+// Copyright Schuyler Zheng. All rights reserved.
 
 #include "WorldLandscape.h"
 #include "Engine/CollisionProfile.h"
@@ -12,18 +12,17 @@ AWorldLandscape::AWorldLandscape()
 {
 	bReplicates = true;
 
-	DynamicMeshComponent = CreateDefaultSubobject<UOctreeDynamicMeshComponent>(TEXT("DynamicMeshComponent"));
+	DynamicMeshComponent = CreateDefaultSubobject<UDynamicMeshComponent>(TEXT("DynamicMeshComponent"));
 	DynamicMeshComponent->SetMobility(EComponentMobility::Movable);
 	DynamicMeshComponent->SetGenerateOverlapEvents(false);
 	DynamicMeshComponent->SetCollisionProfileName(UCollisionProfile::BlockAll_ProfileName);
 
-	DynamicMeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	DynamicMeshComponent->SetCollisionResponseToAllChannels(ECR_Block);
-
-	DynamicMeshComponent->SetSimulatePhysics(true);
+	DynamicMeshComponent->CollisionType = ECollisionTraceFlag::CTF_UseDefault;
+	DynamicMeshComponent->SetComplexAsSimpleCollisionEnabled(true);
+	
 	DynamicMeshComponent->SetEnableGravity(false);
 
-	DynamicMeshComponent->SetMaterial(0, UMaterial::GetDefaultMaterial(MD_Surface));
+	DynamicMeshComponent->SetMaterial(0, UMaterial::GetDefaultMaterial(MD_Surface));		// is this necessary?
 
 	SetRootComponent(DynamicMeshComponent);
 }
@@ -33,6 +32,8 @@ void AWorldLandscape::BeginPlay()
 	Super::BeginPlay();
 
 	DynamicMesh = AllocateComputeMesh();
+	DynamicMeshComponent->RegisterComponent();
+	DynamicMeshComponent->InitializeComponent();
 	DynamicMeshComponent->SetDynamicMesh(DynamicMesh);
 
 	SetupNoise();
@@ -75,9 +76,9 @@ void AWorldLandscape::GenerateTerrain()
 	checkf(IsValid(DynamicMeshComponent), TEXT("Dynamic Mesh Component was bad"));
 	checkf(IsValid(DynamicMesh), TEXT("Dynamic Mesh was bad"));
 	
-	DynamicMesh->GetMeshPtr()->Clear();
+	DynamicMesh->InitializeMesh();
 
-	const float TmpHalfSize = 1000.f;
+	/*const float TmpHalfSize = 1000.f;
 	const float HeightScale = 100.0f;
 	const int NumPointsPerLine = FMath::FloorToInt((TmpHalfSize * 2.0f) / Resolution) + 1;
 
@@ -137,9 +138,12 @@ void AWorldLandscape::GenerateTerrain()
 				Mesh.AppendTriangle(v00, v11, v10);
 			}
 		}
-	}); // end EditMesh lambda
+	}); // end EditMesh lambda */
+
+	DynamicMesh->ResetToCube();
 
 	DynamicMeshComponent->NotifyMeshUpdated();
+	DynamicMeshComponent->MarkRenderStateDirty();
 	DynamicMeshComponent->UpdateCollisionProfile();
 }
 

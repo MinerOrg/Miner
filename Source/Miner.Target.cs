@@ -8,10 +8,10 @@ public class MinerTarget : TargetRules
 	public MinerTarget(TargetInfo Target) : base(Target)
 	{
 		Type = TargetType.Game;
-		DefaultBuildSettings = BuildSettingsVersion.V5;
-		IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_6;
+		DefaultBuildSettings = BuildSettingsVersion.V6;
+		IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_7;
         ExtraModuleNames.AddRange(new string[] { "Miner", "ThirdParty" });
 
-        bUseIris = true;
+        //bUseIris = true;
 	}
 }
