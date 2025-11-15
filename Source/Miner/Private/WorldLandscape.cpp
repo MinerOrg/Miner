@@ -78,7 +78,7 @@ void AWorldLandscape::GenerateTerrain()
 	
 	DynamicMesh->InitializeMesh();
 
-	/*const float TmpHalfSize = 1000.f;
+	const float TmpHalfSize = 1000.f;
 	const float HeightScale = 100.0f;
 	const int NumPointsPerLine = FMath::FloorToInt((TmpHalfSize * 2.0f) / Resolution) + 1;
 
@@ -138,13 +138,9 @@ void AWorldLandscape::GenerateTerrain()
 				Mesh.AppendTriangle(v00, v11, v10);
 			}
 		}
-	}); // end EditMesh lambda */
-
-	DynamicMesh->ResetToCube();
+	}); // end EditMesh lambda
 
 	DynamicMeshComponent->NotifyMeshUpdated();
-	DynamicMeshComponent->MarkRenderStateDirty();
-	DynamicMeshComponent->UpdateCollisionProfile();
 }
 
 UDynamicMeshPool* AWorldLandscape::GetComputeMeshPool()
