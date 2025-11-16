@@ -16,5 +16,7 @@ class MINER_API AWorldGameMode : public AMinerGameMode
 	
 public:
 	AWorldGameMode();
-	float Seed = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int Seed = 6767;
 };

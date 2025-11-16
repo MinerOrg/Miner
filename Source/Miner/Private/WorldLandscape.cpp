@@ -12,6 +12,8 @@ AWorldLandscape::AWorldLandscape()
 {
 	bReplicates = true;
 
+	LocalClientPawn = UGameplayStatics::GetPlayerPawn(this, 0);	// Index 0 is only local client???
+
 	DynamicMeshComponent = CreateDefaultSubobject<UDynamicMeshComponent>(TEXT("DynamicMeshComponent"));
 	DynamicMeshComponent->SetMobility(EComponentMobility::Movable);
 	DynamicMeshComponent->SetGenerateOverlapEvents(false);
@@ -22,7 +24,7 @@ AWorldLandscape::AWorldLandscape()
 	
 	DynamicMeshComponent->SetEnableGravity(false);
 
-	DynamicMeshComponent->SetMaterial(0, UMaterial::GetDefaultMaterial(MD_Surface));		// is this necessary?
+	DynamicMeshComponent->SetMaterial(0, DefaultLandscapeMaterial);
 
 	SetRootComponent(DynamicMeshComponent);
 }
@@ -32,8 +34,6 @@ void AWorldLandscape::BeginPlay()
 	Super::BeginPlay();
 
 	DynamicMesh = AllocateComputeMesh();
-	DynamicMeshComponent->RegisterComponent();
-	DynamicMeshComponent->InitializeComponent();
 	DynamicMeshComponent->SetDynamicMesh(DynamicMesh);
 
 	SetupNoise();
@@ -78,8 +78,15 @@ void AWorldLandscape::GenerateTerrain()
 	
 	DynamicMesh->InitializeMesh();
 
-	const float TmpHalfSize = 1000.f;
-	const float HeightScale = 100.0f;
+	// Use EditMesh so UDynamicMesh broadcasts change events correctly
+	DynamicMesh->EditMesh([&](UE::Geometry::FDynamicMesh3& Mesh) {
+		InitialMeshGeneration(Mesh);
+		PostGeneration(Mesh);
+	});
+}
+
+void AWorldLandscape::InitialMeshGeneration(UE::Geometry::FDynamicMesh3& Mesh)
+{
 	const int NumPointsPerLine = FMath::FloorToInt((TmpHalfSize * 2.0f) / Resolution) + 1;
 
 	// reserve - use multiplication, not XOR
@@ -88,59 +95,49 @@ void AWorldLandscape::GenerateTerrain()
 	if (ReserveCount > TNumericLimits<int32>::Max()) ReserveCount = TNumericLimits<int32>::Max();
 	Verticies.Reserve((int32)ReserveCount);
 
-	// Use EditMesh so UDynamicMesh broadcasts change events correctly
-	DynamicMesh->EditMesh([&](UE::Geometry::FDynamicMesh3& Mesh)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Blue, "Ran correctly");
+	// create vertices in row-major order: x changes fastest
+	for (int iy = 0; iy < NumPointsPerLine; ++iy) {
+		float y = -TmpHalfSize + iy * Resolution;
 
-		Mesh.Clear();
+		for (int ix = 0; ix < NumPointsPerLine; ++ix) {
+			float x = -TmpHalfSize + ix * Resolution;
 
-		// create vertices in row-major order: x changes fastest
-		for (int iy = 0; iy < NumPointsPerLine; ++iy)
-		{
-			float y = -TmpHalfSize + iy * Resolution;
-			for (int ix = 0; ix < NumPointsPerLine; ++ix)
-			{
-				float x = -TmpHalfSize + ix * Resolution;
+			// sample noise (FastNoiseLite's GetNoise expects floats)
+			float h = 0.0f;
+			if (Noise) h = Noise->GetNoise(x, y) * HeightScale;
 
-				// sample noise (FastNoiseLite's GetNoise expects floats)
-				float h = 0.0f;
-				if (Noise)
-				{
-					h = Noise->GetNoise(x, y) * HeightScale;
-				}
-
-				// create vertex and remember its index
-				int32 NewVertID = Mesh.AppendVertex(FVector3d(x, y, h));
-				Verticies.Add(NewVertID);
-			}
+			// create vertex and remember its index
+			int32 NewVertID = Mesh.AppendVertex(FVector3d(x, y, h));
+			check(Mesh.IsVertex(NewVertID));
+			Verticies.Add(NewVertID);
 		}
+	}
 
-		// create two triangles for each quad in the grid
-		for (int iy = 0; iy < NumPointsPerLine - 1; ++iy)
-		{
-			for (int ix = 0; ix < NumPointsPerLine - 1; ++ix)
-			{
-				const int idx00 = ix + iy * NumPointsPerLine;             // this row/col
-				const int idx10 = (ix + 1) + iy * NumPointsPerLine;       // right
-				const int idx01 = ix + (iy + 1) * NumPointsPerLine;       // below
-				const int idx11 = (ix + 1) + (iy + 1) * NumPointsPerLine; // below-right
+	// create two triangles for each quad in the grid
+	for (int iy = 0; iy < NumPointsPerLine - 1; ++iy) {
+		for (int ix = 0; ix < NumPointsPerLine - 1; ++ix) {
+			const int idx00 = ix + iy * NumPointsPerLine;             // this row/col
+			const int idx10 = (ix + 1) + iy * NumPointsPerLine;       // right
+			const int idx01 = ix + (iy + 1) * NumPointsPerLine;       // below
+			const int idx11 = (ix + 1) + (iy + 1) * NumPointsPerLine; // below-right
 
-				int v00 = Verticies[idx00];
-				int v10 = Verticies[idx10];
-				int v01 = Verticies[idx01];
-				int v11 = Verticies[idx11];
+			int32 v00 = Verticies[idx00];
+			int32 v10 = Verticies[idx10];
+			int32 v01 = Verticies[idx01];
+			int32 v11 = Verticies[idx11];
 
-				// First triangle (top-left, bottom-left, bottom-right)
-				Mesh.AppendTriangle(v00, v01, v11);
+			// First triangle (top-left, bottom-left, bottom-right)
+			Mesh.AppendTriangle(v00, v01, v11);
 
-				// Second triangle (top-left, bottom-right, top-right)
-				Mesh.AppendTriangle(v00, v11, v10);
-			}
+			// Second triangle (top-left, bottom-right, top-right)
+			Mesh.AppendTriangle(v00, v11, v10);
 		}
-	}); // end EditMesh lambda
+	}
+}
 
-	DynamicMeshComponent->NotifyMeshUpdated();
+void AWorldLandscape::PostGeneration(UE::Geometry::FDynamicMesh3& Mesh)
+{
+	
 }
 
 UDynamicMeshPool* AWorldLandscape::GetComputeMeshPool()

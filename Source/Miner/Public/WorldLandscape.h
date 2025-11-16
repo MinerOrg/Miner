@@ -62,6 +62,8 @@ protected:
 
 	void SetupNoise();
 	void GenerateTerrain();
+	void InitialMeshGeneration(UE::Geometry::FDynamicMesh3& Mesh);
+	void PostGeneration(UE::Geometry::FDynamicMesh3& Mesh);
 
 	UPROPERTY(Category = DynamicMeshActor, VisibleAnywhere, BlueprintReadOnly, meta = (ExposeFunctionCategories = "Mesh,Rendering,Physics,Components|StaticMesh", AllowPrivateAccess = "true"))
 	TObjectPtr<class UDynamicMeshComponent> DynamicMeshComponent;
@@ -76,6 +78,9 @@ protected:
 	TObjectPtr<FastNoiseLite> Noise;
 
 private:
+	UPROPERTY()
+	APawn* LocalClientPawn;
+
 	UPROPERTY(EditAnywhere, Category = "Noise")
 	int Seed = 1337;
 
@@ -123,4 +128,13 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Landscape", meta = (ToolTip = "How much distance to go until checking the noise again."))
 	float Resolution = 1.0;
+
+	UPROPERTY(EditAnywhere, Category = "Landscape", meta = (ToolTip = "Size of the Landscape"))
+	float TmpHalfSize = 101.f;
+
+	UPROPERTY(EditAnywhere, Category = "Landscape", meta = (ToolTip = "Height Scale of the Landscape"))
+	float HeightScale = 300.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Landscape|Materials", meta = (ToolTip = "Default Material"))
+	UMaterialInterface* DefaultLandscapeMaterial;
 };
