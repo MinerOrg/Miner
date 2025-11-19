@@ -1,79 +1,140 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright = me
 
 #pragma once
 
 #include "CoreMinimal.h"
-#include "DynamicMeshActor.h"
-#include "FastNoiseLite.h"
+#include "UDynamicMesh.h"
+#include "Components/DynamicMeshComponent.h"
+#include "FastNoiseLiteTypes.h"
 #include "WorldLandscape.generated.h"
 
-class AMinerGameMode;
-
 /**
- * TERRAIN CLASS
+ * AWorldLandscape is an Actor that generates a dynamic landscape mesh based on a seed
  */
-UCLASS()
-class MINER_API AWorldLandscape : public ADynamicMeshActor
+
+class FastNoiseLite;
+
+UCLASS(ConversionRoot, ComponentWrapperClass, ClassGroup = DynamicMesh, meta = (ChildCanTick), MinimalAPI)
+class AWorldLandscape : public AActor
 {
 	GENERATED_BODY()
 
 public:
 	AWorldLandscape();
 
-protected:
-	/**
-	* Overriden functions
-	*/
+	UFUNCTION(BlueprintCallable, Category = DynamicMeshActor)
+	UDynamicMeshComponent* GetDynamicMeshComponent() const { return DynamicMeshComponent; }
 
+	//
+	// Mesh Pool support. Meshes can be locally allocated from the Mesh Pool
+	// in Blueprints, and then released back to the Pool and re-used. This
+	// avoids generating temporary UDynamicMesh instances that need to be
+	// garbage-collected. See UDynamicMeshPool for more details.
+	//
+
+	/** Control whether the DynamicMeshPool will be created when requested via GetComputeMeshPool() */
+	UPROPERTY(Category = "DynamicMeshActor|Advanced", EditAnywhere, BlueprintReadWrite)
+	bool bEnableComputeMeshPool = true;
+
+	/** Access the compute mesh pool */
+	UFUNCTION(BlueprintCallable, Category = DynamicMeshActor)
+	UDynamicMeshPool* GetComputeMeshPool();
+
+	/** Request a compute mesh from the Pool, which will return a previously-allocated mesh or add and return a new one. If the Pool is disabled, a new UDynamicMesh will be allocated and returned. */
+	UFUNCTION(BlueprintCallable, Category = DynamicMeshActor)
+	UDynamicMesh* AllocateComputeMesh();
+
+	/** Release a compute mesh back to the Pool */
+	UFUNCTION(BlueprintCallable, Category = DynamicMeshActor)
+	bool ReleaseComputeMesh(UDynamicMesh* Mesh);
+
+	/** Release all compute meshes that the Pool has allocated */
+	UFUNCTION(BlueprintCallable, Category = DynamicMeshActor)
+	void ReleaseAllComputeMeshes();
+
+	/** Release all compute meshes that the Pool has allocated, and then release them from the Pool, so that they will be garbage-collected */
+	UFUNCTION(BlueprintCallable, Category = DynamicMeshActor)
+	void FreeAllComputeMeshes();
+
+protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-	/**
-	* Helper functions
-	*/
+	void SetupNoise();
+	void GenerateTerrain();
+	void InitialMeshGeneration(UE::Geometry::FDynamicMesh3& Mesh);
+	void PostGeneration(UE::Geometry::FDynamicMesh3& Mesh);
 
-	void GenerateTerrain(); // Generate terrain based on noise
-	void LoadTerrainFromSave(); // Load terrain from save file
+	UPROPERTY(Category = DynamicMeshActor, VisibleAnywhere, BlueprintReadOnly, meta = (ExposeFunctionCategories = "Mesh,Rendering,Physics,Components|StaticMesh", AllowPrivateAccess = "true"))
+	TObjectPtr<class UDynamicMeshComponent> DynamicMeshComponent;
 
-	/**
-	*Other Variables
-	*/
+	UPROPERTY(Transient)
+	TObjectPtr<UDynamicMesh> DynamicMesh;
 
-	/**References to other classes*/
-	TObjectPtr<AMinerGameMode> GameMode;
+	/** The internal Mesh Pool, for use in DynamicMeshActor BPs. Use GetComputeMeshPool() to access this, as it will only be created on-demand if bEnableComputeMeshPool = true */
+	UPROPERTY(Transient)
+	TObjectPtr<UDynamicMeshPool> DynamicMeshPool;
 
-	/**Dynamic mesh variables*/
-	TObjectPtr<UDynamicMeshComponent> DynamicMeshComponent;
-	FDynamicMesh3* DynamicMesh = nullptr;
+	TObjectPtr<FastNoiseLite> Noise;
 
 private:
-	/**Noise parameters*/
-	FastNoiseLite* Noise = nullptr;	// The actual noise variable
+	UPROPERTY()
+	APawn* LocalClientPawn;
 
-	UPROPERTY(EditAnywhere, Category = "World Gen")
-	float NoiseScale = 0.1f;	// Scale of the noise
-	UPROPERTY(EditAnywhere, Category="World Gen")
-	float NoiseAmplitude = 20.0f;
-	UPROPERTY(EditAnywhere, Category = "World Gen")
-	float NoiseFrequencey = 0.03f;
-	UPROPERTY(EditAnywhere, Category = "World Gen")
-	/**
-	* 1 = NoiseType_OpenSimplex2
-	* 2 = NoiseType_OpenSimplex2S
-	* 3 = NoiseType_Cellular
-	* 4 = NoiseType_Perlin
-	* 5 = NoiseType_ValueCubic
-	* 6 = NoiseType_Value
-	*/
-	int NoiseNoiseType = FastNoiseLite::NoiseType_Perlin;
-	UPROPERTY(EditAnywhere, Category = "World Gen")
-	/**
-	* 1 = FractalType_None
-	* 2 = FractalType_FBm
-	* 3 = FractalType_Ridged
-	* 4 = FractalType_PingPong
-	* 5 = FractalType_DomainWarpProgressive
-	* 6 = FractalType_DomainWarpIndependent
-	*/
-	int NoiseFractalType = FastNoiseLite::FractalType_FBm;
+	UPROPERTY(EditAnywhere, Category = "Noise")
+	int Seed = 1337;
+
+	UPROPERTY(EditAnywhere, Category = "Noise")
+	float Frequency = 0.03f;
+
+	UPROPERTY(EditAnywhere, Category = "Noise")
+	TEnumAsByte<FastNoiseLiteTypes_NoiseType> NoiseType = NoiseType_Perlin;
+
+	UPROPERTY(EditAnywhere, Category = "Noise")
+	TEnumAsByte<FastNoiseLiteTypes_RotationType3D> RotationType3D = RotationType3D_None;
+
+	UPROPERTY(EditAnywhere, Category = "Noise")
+	TEnumAsByte<FastNoiseLiteTypes_FractalType> FractalType = FractalType_FBm;
+
+	UPROPERTY(EditAnywhere, Category = "Noise")
+	int FractalOctaves = 3;
+
+	UPROPERTY(EditAnywhere, Category = "Noise")
+	float FractalLacunarity = 2.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Noise")
+	float FractalGain = 0.5f;
+
+	UPROPERTY(EditAnywhere, Category = "Noise")
+	float FractalWeightedStrength = 0.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Noise")
+	float FractalPingPongStrength = 2.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Noise")
+	TEnumAsByte<FastNoiseLiteTypes_CellularDistanceFunction> CellularDistanceFunction = CellularDistanceFunction_EuclideanSq;
+
+	UPROPERTY(EditAnywhere, Category = "Noise")
+	TEnumAsByte<FastNoiseLiteTypes_CellularReturnType> CellularReturnType = CellularReturnType_Distance;
+
+	UPROPERTY(EditAnywhere, Category = "Noise")
+	float CellularJitter = 1.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Noise")
+	TEnumAsByte<FastNoiseLiteTypes_DomainWarpType> DomainWarpType = DomainWarpType_OpenSimplex2;
+
+	UPROPERTY(EditAnywhere, Category = "Noise")
+	float DomainWarpAmp = 1.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Landscape", meta = (ToolTip = "How much distance to go until checking the noise again."))
+	float Resolution = 1.0;
+
+	UPROPERTY(EditAnywhere, Category = "Landscape", meta = (ToolTip = "Size of the Landscape"))
+	float TmpHalfSize = 101.f;
+
+	UPROPERTY(EditAnywhere, Category = "Landscape", meta = (ToolTip = "Height Scale of the Landscape"))
+	float HeightScale = 300.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Landscape|Materials", meta = (ToolTip = "Default Material"))
+	UMaterialInterface* DefaultLandscapeMaterial;
 };
