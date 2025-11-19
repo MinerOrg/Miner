@@ -17,7 +17,7 @@ DECLARE_LOG_CATEGORY_EXTERN(LogBaseCharacter, Log, All);
 /**
  * Base Character class used for player character, enemies, etc.
  */
-UCLASS()
+UCLASS(abstract)
 class MINER_API ABaseCharacter : public AMinerCharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
@@ -101,17 +101,22 @@ public:
 	* Defaults
 	*/
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Defaults")
-	float DefaultWalkSpeed = 600.0f;	// Default walk speed for the character
+	float DefaultWalkSpeed = 600.0f;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Defaults")
-	float DefaultSprintSpeed = 1000.0f;	// Default sprint speed for the character
+	float DefaultSprintSpeed = 1000.0f;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Defaults")
-	float DefaultJumpHeight = 420.0f;	// Default jump height for the character
+	float DefaultJumpHeight = 420.0f;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Defaults")
-	float DefaultSprintJumpHeight = 600.0f;	// Default jump height when sprinting for the character
+	float DefaultSprintJumpHeight = 600.0f;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Defaults")
-	float DefaultCrouchSpeed = 300.0f;	// Default crouch speed for the character
+	float DefaultCrouchSpeed = 300.0f;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Defaults")
-	float DefaultCrouchHeight = 40.0f;	// Default crouch height for the character
+	float DefaultCrouchHeight = 40.0f;
 
 protected:
 	/** Input actions */
@@ -165,12 +170,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Items")
 	FName RightHandSocket = FName("HandGrip_R");
 
-	/** List of items picked up by the character */
-	TArray<ABaseItem*> OwnedItems;
-
-	/** Item currently equipped and ready to use */
-	TObjectPtr<ABaseItem> CurrentItem;
-
 	/**
 	* Overrides
 	*/
@@ -186,4 +185,11 @@ protected:
 
 	/**Grant abilities*/
 	void GrantAbilities();
+
+private:
+	/** List of items picked up by the character */
+	TArray<ABaseItem*> OwnedItems;
+
+	/** Item currently equipped and ready to use */
+	TObjectPtr<ABaseItem> CurrentItem;
 };

@@ -77,64 +77,64 @@ protected:
 
 	TObjectPtr<FastNoiseLite> Noise;
 
-private:
-	UPROPERTY()
-	APawn* LocalClientPawn;
-
 	UPROPERTY(EditAnywhere, Category = "Noise")
 	int Seed = 1337;
 
 	UPROPERTY(EditAnywhere, Category = "Noise")
 	float Frequency = 0.03f;
 
-	UPROPERTY(EditAnywhere, Category = "Noise")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Noise")
 	TEnumAsByte<FastNoiseLiteTypes_NoiseType> NoiseType = NoiseType_Perlin;
 
-	UPROPERTY(EditAnywhere, Category = "Noise")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Noise")
 	TEnumAsByte<FastNoiseLiteTypes_RotationType3D> RotationType3D = RotationType3D_None;
 
-	UPROPERTY(EditAnywhere, Category = "Noise")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Noise")
 	TEnumAsByte<FastNoiseLiteTypes_FractalType> FractalType = FractalType_FBm;
 
-	UPROPERTY(EditAnywhere, Category = "Noise")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Noise")
 	int FractalOctaves = 3;
 
-	UPROPERTY(EditAnywhere, Category = "Noise")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Noise")
 	float FractalLacunarity = 2.0f;
 
-	UPROPERTY(EditAnywhere, Category = "Noise")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Noise")
 	float FractalGain = 0.5f;
 
-	UPROPERTY(EditAnywhere, Category = "Noise")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Noise")
 	float FractalWeightedStrength = 0.0f;
 
-	UPROPERTY(EditAnywhere, Category = "Noise")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Noise")
 	float FractalPingPongStrength = 2.0f;
 
-	UPROPERTY(EditAnywhere, Category = "Noise")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Noise")
 	TEnumAsByte<FastNoiseLiteTypes_CellularDistanceFunction> CellularDistanceFunction = CellularDistanceFunction_EuclideanSq;
 
-	UPROPERTY(EditAnywhere, Category = "Noise")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Noise")
 	TEnumAsByte<FastNoiseLiteTypes_CellularReturnType> CellularReturnType = CellularReturnType_Distance;
 
-	UPROPERTY(EditAnywhere, Category = "Noise")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Noise")
 	float CellularJitter = 1.0f;
 
-	UPROPERTY(EditAnywhere, Category = "Noise")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Noise")
 	TEnumAsByte<FastNoiseLiteTypes_DomainWarpType> DomainWarpType = DomainWarpType_OpenSimplex2;
 
-	UPROPERTY(EditAnywhere, Category = "Noise")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Noise")
 	float DomainWarpAmp = 1.0f;
 
-	UPROPERTY(EditAnywhere, Category = "Landscape", meta = (ToolTip = "How much distance to go until checking the noise again."))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "How much distance to go until checking the noise again."))
 	float Resolution = 1.0;
 
-	UPROPERTY(EditAnywhere, Category = "Landscape", meta = (ToolTip = "Size of the Landscape"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "Size of the Landscape"))
 	float TmpHalfSize = 101.f;
 
-	UPROPERTY(EditAnywhere, Category = "Landscape", meta = (ToolTip = "Height Scale of the Landscape"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "Height Scale of the Landscape"))
 	float HeightScale = 300.0f;
 
-	UPROPERTY(EditAnywhere, Category = "Landscape|Materials", meta = (ToolTip = "Default Material"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape|Materials", meta = (ToolTip = "Default Material"))
 	UMaterialInterface* DefaultLandscapeMaterial;
+
+private:
+	UPROPERTY()
+	APawn* LocalClientPawn;
 };

@@ -78,7 +78,7 @@ void AWorldLandscape::GenerateTerrain()
 	
 	DynamicMesh->InitializeMesh();
 
-	// Use EditMesh so UDynamicMesh broadcasts change events correctly
+	// EditMesh > just using notifymesh because more safe
 	DynamicMesh->EditMesh([&](UE::Geometry::FDynamicMesh3& Mesh) {
 		InitialMeshGeneration(Mesh);
 		PostGeneration(Mesh);
@@ -89,48 +89,37 @@ void AWorldLandscape::InitialMeshGeneration(UE::Geometry::FDynamicMesh3& Mesh)
 {
 	const int NumPointsPerLine = FMath::FloorToInt((TmpHalfSize * 2.0f) / Resolution) + 1;
 
-	// reserve - use multiplication, not XOR
 	TArray<int32> Verticies;
 	int64 ReserveCount = (int64)NumPointsPerLine * (int64)NumPointsPerLine;
 	if (ReserveCount > TNumericLimits<int32>::Max()) ReserveCount = TNumericLimits<int32>::Max();
 	Verticies.Reserve((int32)ReserveCount);
 
-	// create vertices in row-major order: x changes fastest
+	// create vertices in row-major order: x changes fastest (this makes it faster?)
 	for (int iy = 0; iy < NumPointsPerLine; ++iy) {
 		float y = -TmpHalfSize + iy * Resolution;
 
 		for (int ix = 0; ix < NumPointsPerLine; ++ix) {
 			float x = -TmpHalfSize + ix * Resolution;
 
-			// sample noise (FastNoiseLite's GetNoise expects floats)
-			float h = 0.0f;
-			if (Noise) h = Noise->GetNoise(x, y) * HeightScale;
+			// get noise for height
+			checkf(Noise, TEXT("Noise was bad"));
+			float h = Noise->GetNoise(x, y) * HeightScale;
 
 			// create vertex and remember its index
-			int32 NewVertID = Mesh.AppendVertex(FVector3d(x, y, h));
-			check(Mesh.IsVertex(NewVertID));
-			Verticies.Add(NewVertID);
+			int32 NewVertex = Mesh.AppendVertex(FVector3d(x, y, h));
+			check(Mesh.IsVertex(NewVertex));
+			Verticies.Add(NewVertex);
 		}
 	}
 
-	// create two triangles for each quad in the grid
+	// Create the triangles
 	for (int iy = 0; iy < NumPointsPerLine - 1; ++iy) {
 		for (int ix = 0; ix < NumPointsPerLine - 1; ++ix) {
-			const int idx00 = ix + iy * NumPointsPerLine;             // this row/col
-			const int idx10 = (ix + 1) + iy * NumPointsPerLine;       // right
-			const int idx01 = ix + (iy + 1) * NumPointsPerLine;       // below
-			const int idx11 = (ix + 1) + (iy + 1) * NumPointsPerLine; // below-right
-
-			int32 v00 = Verticies[idx00];
-			int32 v10 = Verticies[idx10];
-			int32 v01 = Verticies[idx01];
-			int32 v11 = Verticies[idx11];
-
 			// First triangle (top-left, bottom-left, bottom-right)
-			Mesh.AppendTriangle(v00, v01, v11);
+			Mesh.AppendTriangle(Verticies[ix + iy * NumPointsPerLine], Verticies[ix + (iy + 1) * NumPointsPerLine], Verticies[(ix + 1) + (iy + 1) * NumPointsPerLine]);
 
 			// Second triangle (top-left, bottom-right, top-right)
-			Mesh.AppendTriangle(v00, v11, v10);
+			Mesh.AppendTriangle(Verticies[ix + iy * NumPointsPerLine], Verticies[(ix + 1) + (iy + 1) * NumPointsPerLine], Verticies[(ix + 1) + iy * NumPointsPerLine]);
 		}
 	}
 }
