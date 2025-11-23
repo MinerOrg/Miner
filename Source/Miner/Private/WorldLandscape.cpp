@@ -31,7 +31,9 @@ void AWorldLandscape::BeginPlay()
 {
 	Super::BeginPlay();
 
-	checkf(IsValid(LocalClientPawn = UGameplayStatics::GetPlayerPawn(this, 0)), TEXT("Local Client Pawn was bad"));    // Index 0 is only local client???
+	// Get local client pawn
+	checkf(IsValid(LocalClientPawn = GetWorld()->GetFirstPlayerController()->GetPawn()), TEXT("Local Pawn was bad"));
+
 	DynamicMesh = AllocateComputeMesh();
 	DynamicMeshComponent->SetDynamicMesh(DynamicMesh);
 

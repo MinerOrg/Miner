@@ -89,10 +89,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape|Materials", meta = (ToolTip = "Default Material"))
 	UMaterialInterface* DefaultLandscapeMaterial;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Chunk spacing/Distance to go until make chunk follow")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "Chunk spacing/Distance to go until make chunk follow"))
 	float ChunkDistance = 100.0f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "How far the chunk should go")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "How far the chunk should go"))
 	float RenderDistance = 100.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Noise")
