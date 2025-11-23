@@ -58,6 +58,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaSeconds) override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	void SetupNoise();
@@ -78,6 +79,21 @@ protected:
 	TObjectPtr<UDynamicMeshPool> DynamicMeshPool;
 
 	TObjectPtr<FastNoiseLite> Noise;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "How much distance to go until checking the noise again."))
+	float Resolution = 1.0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "Height Scale of the Landscape"))
+	float HeightScale = 300.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape|Materials", meta = (ToolTip = "Default Material"))
+	UMaterialInterface* DefaultLandscapeMaterial;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Chunk spacing/Distance to go until make chunk follow")
+	float ChunkDistance = 100.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "How far the chunk should go")
+	float RenderDistance = 100.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Noise")
 	int Seed = 1337;
@@ -124,18 +140,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Noise")
 	float DomainWarpAmp = 1.0f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "How much distance to go until checking the noise again."))
-	float Resolution = 1.0;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "Size of the Landscape"))
-	float TmpHalfSize = 101.f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "Height Scale of the Landscape"))
-	float HeightScale = 300.0f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape|Materials", meta = (ToolTip = "Default Material"))
-	UMaterialInterface* DefaultLandscapeMaterial;
-
 	UE::Geometry::EValidityCheckFailMode ValidityCheckFailMode = UE::Geometry::EValidityCheckFailMode::Ensure;
 
 	FDynamicMesh3::FValidityOptions ValidityOptions = { false, false };
@@ -143,4 +147,7 @@ protected:
 private:
 	UPROPERTY()
 	APawn* LocalClientPawn;
+
+	UPROPERTY()
+	FVector LastPlayerLocation;
 };

@@ -12,8 +12,6 @@ AWorldLandscape::AWorldLandscape()
 {
 	bReplicates = true;
 
-	LocalClientPawn = UGameplayStatics::GetPlayerPawn(this, 0);	// Index 0 is only local client???
-
 	DynamicMeshComponent = CreateDefaultSubobject<UDynamicMeshComponent>(TEXT("DynamicMeshComponent"));
 	DynamicMeshComponent->SetMobility(EComponentMobility::Movable);
 	DynamicMeshComponent->SetGenerateOverlapEvents(false);
@@ -33,11 +31,23 @@ void AWorldLandscape::BeginPlay()
 {
 	Super::BeginPlay();
 
+	checkf(IsValid(LocalClientPawn = UGameplayStatics::GetPlayerPawn(this, 0)), TEXT("Local Client Pawn was bad"));    // Index 0 is only local client???
 	DynamicMesh = AllocateComputeMesh();
 	DynamicMeshComponent->SetDynamicMesh(DynamicMesh);
 
 	SetupNoise();
 	GenerateTerrain();
+}
+
+void AWorldLandscape::Tick(float DeltaTime)
+{
+	checkf(IsValid(LocalClientPawn), TEXT("Client Pawn bad"));
+	FVector LocalClientPawnLocation = LocalClientPawn->GetActorLocation();
+
+	// If the player has moved out of bounds, make the mesh follow them. (No Z check for now)
+	if (FMath::RoundToInt(LastPlayerLocation.X / ChunkDistance) * ChunkDistance != LocalClientPawnLocation.X || FMath::RoundToInt(LastPlayerLocation.Y / ChunkDistance) * ChunkDistance != LocalClientPawnLocation.Y /* || FMath::RoundToInt(LastPlayerLocation.Z / ChunkDistance) * ChunkDistance != LocalClientPawnLocation.Z */) {
+		GenerateTerrain();
+	}
 }
 
 void AWorldLandscape::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -92,7 +102,8 @@ void AWorldLandscape::GenerateTerrain()
 
 void AWorldLandscape::InitialMeshGeneration(UE::Geometry::FDynamicMesh3& Mesh)
 {
-	const int NumPointsPerLine = FMath::FloorToInt((TmpHalfSize * 2.0f) / Resolution) + 1;
+	const FVector LocalClientPawnLocation = LocalClientPawn->GetActorLocation();
+	const int NumPointsPerLine = FMath::FloorToInt((RenderDistance * 2.0f) / Resolution) + 1;
 
 	TArray<int32> Verticies;
 	int64 ReserveCount = (int64)NumPointsPerLine * (int64)NumPointsPerLine;
@@ -100,30 +111,30 @@ void AWorldLandscape::InitialMeshGeneration(UE::Geometry::FDynamicMesh3& Mesh)
 	Verticies.Reserve((int32)ReserveCount);
 
 	// create vertices in row-major order: x changes fastest (this makes it faster?)
-	for (int iy = 0; iy < NumPointsPerLine; ++iy) {
-		float y = -TmpHalfSize + iy * Resolution;
+	for (int IndexY = 0; IndexY < NumPointsPerLine; ++IndexY) {
+		float VertexY = -RenderDistance + IndexY * Resolution;
 
-		for (int ix = 0; ix < NumPointsPerLine; ++ix) {
-			float x = -TmpHalfSize + ix * Resolution;
+		for (int IndexX = 0; IndexX < NumPointsPerLine; ++IndexX) {
+			float VertexX = -RenderDistance + IndexX * Resolution;
 
 			// get noise for height
-			float h = Noise->GetNoise(x, y) * HeightScale;
+			float Height = Noise->GetNoise(VertexX + LocalClientPawnLocation.X, VertexY + LocalClientPawnLocation.Y) * HeightScale;
 
 			// create vertex and remember its index
-			int32 NewVertex = Mesh.AppendVertex(FVector3d(x, y, h));
+			int32 NewVertex = Mesh.AppendVertex(FVector3d(VertexX + LocalClientPawnLocation.X, VertexY + LocalClientPawnLocation.Y, Height));
 			check(Mesh.IsVertex(NewVertex));
 			Verticies.Add(NewVertex);
 		}
 	}
 
 	// Create the triangles
-	for (int iy = 0; iy < NumPointsPerLine - 1; ++iy) {
-		for (int ix = 0; ix < NumPointsPerLine - 1; ++ix) {
+	for (int IndexY = 0; IndexY < NumPointsPerLine - 1; ++IndexY) {
+		for (int IndexX = 0; IndexX < NumPointsPerLine - 1; ++IndexX) {
 			// Apparently making them into individual variables instead of an array is better
-			const int TopLeftVertex = Verticies[ix + iy * NumPointsPerLine];             // top left
-			const int TopRightVertex = Verticies[(ix + 1) + iy * NumPointsPerLine];       // top right
-			const int BottomLeftVertex = Verticies[ix + (iy + 1) * NumPointsPerLine];       // bottom left
-			const int BottomRightVertex = Verticies[(ix + 1) + (iy + 1) * NumPointsPerLine]; // bottom right
+			const int TopLeftVertex = Verticies[IndexX + IndexY * NumPointsPerLine];             // top left
+			const int TopRightVertex = Verticies[(IndexX + 1) + IndexY * NumPointsPerLine];       // top right
+			const int BottomLeftVertex = Verticies[IndexX + (IndexY + 1) * NumPointsPerLine];       // bottom left
+			const int BottomRightVertex = Verticies[(IndexX + 1) + (IndexY + 1) * NumPointsPerLine]; // bottom right
 
 			// First triangle (top-left, bottom-left, bottom-right)
 			Mesh.AppendTriangle(TopLeftVertex, BottomLeftVertex, BottomRightVertex);
