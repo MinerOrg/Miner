@@ -1,4 +1,4 @@
-// Copyright = me
+// Copyright Schuyler Zheng. All rights reserved.
 
 #pragma once
 
@@ -62,6 +62,8 @@ protected:
 
 	void SetupNoise();
 	void GenerateTerrain();
+
+	// Mesh generation steps
 	void InitialMeshGeneration(UE::Geometry::FDynamicMesh3& Mesh);
 	void PostGeneration(UE::Geometry::FDynamicMesh3& Mesh);
 
@@ -133,6 +135,10 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape|Materials", meta = (ToolTip = "Default Material"))
 	UMaterialInterface* DefaultLandscapeMaterial;
+
+	UE::Geometry::EValidityCheckFailMode ValidityCheckFailMode = UE::Geometry::EValidityCheckFailMode::Ensure;
+
+	FDynamicMesh3::FValidityOptions ValidityOptions = { false, false };
 
 private:
 	UPROPERTY()

@@ -75,6 +75,7 @@ void AWorldLandscape::GenerateTerrain()
 {
 	checkf(IsValid(DynamicMeshComponent), TEXT("Dynamic Mesh Component was bad"));
 	checkf(IsValid(DynamicMesh), TEXT("Dynamic Mesh was bad"));
+	checkf(Noise, TEXT("Noise was bad"));
 	
 	DynamicMesh->InitializeMesh();
 
@@ -82,6 +83,10 @@ void AWorldLandscape::GenerateTerrain()
 	DynamicMesh->EditMesh([&](UE::Geometry::FDynamicMesh3& Mesh) {
 		InitialMeshGeneration(Mesh);
 		PostGeneration(Mesh);
+
+		// Final validity checks
+		ensureMsgf(Mesh.CheckValidity(ValidityOptions, ValidityCheckFailMode), TEXT("Mesh was not valid"));
+		ensureMsgf(Mesh.IsCompact(), TEXT("Mesh had gaps (was not compact)"));
 	});
 }
 
@@ -102,7 +107,6 @@ void AWorldLandscape::InitialMeshGeneration(UE::Geometry::FDynamicMesh3& Mesh)
 			float x = -TmpHalfSize + ix * Resolution;
 
 			// get noise for height
-			checkf(Noise, TEXT("Noise was bad"));
 			float h = Noise->GetNoise(x, y) * HeightScale;
 
 			// create vertex and remember its index
@@ -115,11 +119,17 @@ void AWorldLandscape::InitialMeshGeneration(UE::Geometry::FDynamicMesh3& Mesh)
 	// Create the triangles
 	for (int iy = 0; iy < NumPointsPerLine - 1; ++iy) {
 		for (int ix = 0; ix < NumPointsPerLine - 1; ++ix) {
+			// Apparently making them into individual variables instead of an array is better
+			const int TopLeftVertex = Verticies[ix + iy * NumPointsPerLine];             // top left
+			const int TopRightVertex = Verticies[(ix + 1) + iy * NumPointsPerLine];       // top right
+			const int BottomLeftVertex = Verticies[ix + (iy + 1) * NumPointsPerLine];       // bottom left
+			const int BottomRightVertex = Verticies[(ix + 1) + (iy + 1) * NumPointsPerLine]; // bottom right
+
 			// First triangle (top-left, bottom-left, bottom-right)
-			Mesh.AppendTriangle(Verticies[ix + iy * NumPointsPerLine], Verticies[ix + (iy + 1) * NumPointsPerLine], Verticies[(ix + 1) + (iy + 1) * NumPointsPerLine]);
+			Mesh.AppendTriangle(TopLeftVertex, BottomLeftVertex, BottomRightVertex);
 
 			// Second triangle (top-left, bottom-right, top-right)
-			Mesh.AppendTriangle(Verticies[ix + iy * NumPointsPerLine], Verticies[(ix + 1) + (iy + 1) * NumPointsPerLine], Verticies[(ix + 1) + iy * NumPointsPerLine]);
+			Mesh.AppendTriangle(TopLeftVertex, BottomRightVertex, TopRightVertex);
 		}
 	}
 }
