@@ -33,6 +33,7 @@ void AWorldLandscape::BeginPlay()
 
 	// Get local client pawn
 	checkf(IsValid(LocalClientPawn = GetWorld()->GetFirstPlayerController()->GetPawn()), TEXT("Local Pawn was bad"));
+	LastPlayerLocation = LocalClientPawn->GetActorLocation();
 
 	DynamicMesh = AllocateComputeMesh();
 	DynamicMeshComponent->SetDynamicMesh(DynamicMesh);
@@ -46,10 +47,17 @@ void AWorldLandscape::Tick(float DeltaTime)
 	checkf(IsValid(LocalClientPawn), TEXT("Client Pawn bad"));
 	FVector LocalClientPawnLocation = LocalClientPawn->GetActorLocation();
 
+	GenerateTerrain();
+
 	// If the player has moved out of bounds, make the mesh follow them. (No Z check for now)
-	if (FMath::RoundToInt(LastPlayerLocation.X / ChunkDistance) * ChunkDistance != LocalClientPawnLocation.X || FMath::RoundToInt(LastPlayerLocation.Y / ChunkDistance) * ChunkDistance != LocalClientPawnLocation.Y /* || FMath::RoundToInt(LastPlayerLocation.Z / ChunkDistance) * ChunkDistance != LocalClientPawnLocation.Z */) {
-		GenerateTerrain();
-	}
+	//if (FMath::RoundToInt(LastPlayerLocation.X / ChunkDistance) * ChunkDistance != FMath::RoundToInt(LocalClientPawnLocation.X / ChunkDistance) * ChunkDistance || FMath::RoundToInt(LastPlayerLocation.Y / ChunkDistance) * ChunkDistance != FMath::RoundToInt(LocalClientPawnLocation.Y / ChunkDistance) * ChunkDistance /* || FMath::RoundToInt(LastPlayerLocation.Z / ChunkDistance) * ChunkDistance != LocalClientPawnLocation.Z */) {
+	//	LastPlayerLocation = LocalClientPawnLocation;
+	//	GenerateTerrain();
+	//}
+	//else {
+	//	//FString DebugMsg = FString::Printf(TEXT("LastPlayerX: %d, LastPlayerY: %d, PlayerX: %d, PlayerY: %d"), FMath::RoundToInt(LastPlayerLocation.X / ChunkDistance) * ChunkDistance, FMath::RoundToInt(LastPlayerLocation.Y / ChunkDistance) * ChunkDistance, FMath::RoundToInt(LocalClientPawnLocation.X / ChunkDistance) * ChunkDistance, FMath::RoundToInt(LocalClientPawnLocation.Y / ChunkDistance) * ChunkDistance);
+	//	//if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Yellow, DebugMsg);
+	//}
 }
 
 void AWorldLandscape::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -85,6 +93,8 @@ void AWorldLandscape::SetupNoise()
 
 void AWorldLandscape::GenerateTerrain()
 {
+	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Generating Terrain Mesh"));
+
 	checkf(IsValid(DynamicMeshComponent), TEXT("Dynamic Mesh Component was bad"));
 	checkf(IsValid(DynamicMesh), TEXT("Dynamic Mesh was bad"));
 	checkf(Noise, TEXT("Noise was bad"));
