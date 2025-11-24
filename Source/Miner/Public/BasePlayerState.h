@@ -19,5 +19,5 @@ public:
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Replication" )
-	float BaseNetUpdateFrequency = 120.0f;
+	float BaseNetUpdateFrequency = 100.0f;
 };
