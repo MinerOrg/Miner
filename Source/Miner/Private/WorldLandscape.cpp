@@ -10,7 +10,7 @@
 
 AWorldLandscape::AWorldLandscape()
 {
-	bReplicates = true;
+	bReplicates = false;
 
 	DynamicMeshComponent = CreateDefaultSubobject<UDynamicMeshComponent>(TEXT("DynamicMeshComponent"));
 	DynamicMeshComponent->SetMobility(EComponentMobility::Movable);
@@ -31,6 +31,8 @@ void AWorldLandscape::BeginPlay()
 {
 	Super::BeginPlay();
 
+	checkf(ChunkDistance != 0, TEXT("Chunk distance cannot be 0"));
+
 	// Get local client pawn
 	checkf(IsValid(LocalClientPawn = GetWorld()->GetFirstPlayerController()->GetPawn()), TEXT("Local Pawn was bad"));
 	LastPlayerLocation = LocalClientPawn->GetActorLocation();
@@ -39,25 +41,22 @@ void AWorldLandscape::BeginPlay()
 	DynamicMeshComponent->SetDynamicMesh(DynamicMesh);
 
 	SetupNoise();
-	GenerateTerrain();
 }
 
 void AWorldLandscape::Tick(float DeltaTime)
 {
+	Super::Tick(DeltaTime);
+
 	checkf(IsValid(LocalClientPawn), TEXT("Client Pawn bad"));
 	FVector LocalClientPawnLocation = LocalClientPawn->GetActorLocation();
 
-	GenerateTerrain();
+	GEngine->AddOnScreenDebugMessage(-1, 100.f, FColor::Yellow, FString::Printf(TEXT("Skibidi")));
 
 	// If the player has moved out of bounds, make the mesh follow them. (No Z check for now)
-	//if (FMath::RoundToInt(LastPlayerLocation.X / ChunkDistance) * ChunkDistance != FMath::RoundToInt(LocalClientPawnLocation.X / ChunkDistance) * ChunkDistance || FMath::RoundToInt(LastPlayerLocation.Y / ChunkDistance) * ChunkDistance != FMath::RoundToInt(LocalClientPawnLocation.Y / ChunkDistance) * ChunkDistance /* || FMath::RoundToInt(LastPlayerLocation.Z / ChunkDistance) * ChunkDistance != LocalClientPawnLocation.Z */) {
-	//	LastPlayerLocation = LocalClientPawnLocation;
-	//	GenerateTerrain();
-	//}
-	//else {
-	//	//FString DebugMsg = FString::Printf(TEXT("LastPlayerX: %d, LastPlayerY: %d, PlayerX: %d, PlayerY: %d"), FMath::RoundToInt(LastPlayerLocation.X / ChunkDistance) * ChunkDistance, FMath::RoundToInt(LastPlayerLocation.Y / ChunkDistance) * ChunkDistance, FMath::RoundToInt(LocalClientPawnLocation.X / ChunkDistance) * ChunkDistance, FMath::RoundToInt(LocalClientPawnLocation.Y / ChunkDistance) * ChunkDistance);
-	//	//if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Yellow, DebugMsg);
-	//}
+	if (FMath::RoundToInt(LastPlayerLocation.X / ChunkDistance) * ChunkDistance != FMath::RoundToInt(LocalClientPawnLocation.X / ChunkDistance) * ChunkDistance || FMath::RoundToInt(LastPlayerLocation.Y / ChunkDistance) * ChunkDistance != FMath::RoundToInt(LocalClientPawnLocation.Y / ChunkDistance) * ChunkDistance /* || FMath::RoundToInt(LastPlayerLocation.Z / ChunkDistance) * ChunkDistance != LocalClientPawnLocation.Z */) {
+		LastPlayerLocation = LocalClientPawnLocation;
+		GenerateTerrain();
+	}
 }
 
 void AWorldLandscape::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -71,8 +70,8 @@ void AWorldLandscape::SetupNoise()
 {
 	Noise = new FastNoiseLite();
 
-	if (UGameplayStatics::GetGameMode(GetWorld()) != nullptr)	{ Seed = CastChecked<AWorldGameMode>(UGameplayStatics::GetGameMode(GetWorld()))->Seed;	}
-	else { UE_LOG(LogTemp, Warning, TEXT("SetupNoise: GetGameMode() returned null (client). Ensure Seed is replicated via GameState or actor property.")); }
+	checkf(IsValid(UGameplayStatics::GetGameMode(GetWorld())), TEXT("SS"));
+	Seed = CastChecked<AWorldGameMode>(UGameplayStatics::GetGameMode(GetWorld()))->Seed;
 
 	Noise->SetSeed(Seed);
 	Noise->SetFrequency(Frequency);
