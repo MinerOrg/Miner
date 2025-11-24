@@ -45,10 +45,6 @@ void USprint::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 	// Set sprint parameters
 	Character->GetCharacterMovement()->MaxWalkSpeed = Character->DefaultSprintSpeed;
 	Character->GetCharacterMovement()->JumpZVelocity = Character->DefaultSprintJumpHeight;
-
-	// Log
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Sprint started"));
-	UE_LOG(LogSprintAbility, Log, TEXT("Sprint started. Applied to: %s"), *Character->GetName());
 	
 	// Cancel if no more stamina
 	WaitStaminaTask = UAbilityTask_WaitAttributeChange::WaitForAttributeChangeWithComparison(this, AttributeSet->GetStaminaAttribute(), FGameplayTag(), FGameplayTag(), EWaitAttributeChangeComparison::LessThanOrEqualTo, 0.0f, false, nullptr);

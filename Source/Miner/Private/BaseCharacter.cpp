@@ -47,17 +47,11 @@ void ABaseCharacter::BeginPlay()
 void ABaseCharacter::DoJumpStart()
 {
 	AbilitySystemComponent->AbilityLocalInputPressed(static_cast<int32>(EAbilitiesIndex::JumpAbility));
-
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Jump called"));
-	UE_LOG(LogBaseCharacter, Log, TEXT("Jump called"));
 }
 
 void ABaseCharacter::DoJumpEnd()
 {
 	AbilitySystemComponent->AbilityLocalInputReleased(static_cast<int32>(EAbilitiesIndex::JumpAbility));
-
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Jump released"));
-	UE_LOG(LogBaseCharacter, Log, TEXT("Jump released"));
 }
 
 void ABaseCharacter::DoStartRightClick()
@@ -80,33 +74,21 @@ void ABaseCharacter::DoStopLeftClick()
 void ABaseCharacter::DoStartSprint()
 {
 	AbilitySystemComponent->AbilityLocalInputPressed(static_cast<int32>(EAbilitiesIndex::SprintAbility));
-
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Sprint called"));
-	UE_LOG(LogBaseCharacter, Log, TEXT("Sprint called"));
 }
 
 void ABaseCharacter::DoEndSprint()
 {
 	AbilitySystemComponent->AbilityLocalInputReleased(static_cast<int32>(EAbilitiesIndex::SprintAbility));
-
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Sprint released"));
-	UE_LOG(LogBaseCharacter, Log, TEXT("Sprint released"));
 }
 
 void ABaseCharacter::DoStartCrouch()
 {
 	AbilitySystemComponent->AbilityLocalInputPressed(static_cast<int32>(EAbilitiesIndex::CrouchAbility));
-
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Crouch called"));
-	UE_LOG(LogBaseCharacter, Log, TEXT("Crouch called"));
 }
 
 void ABaseCharacter::DoEndCrouch()
 {
 	AbilitySystemComponent->AbilityLocalInputReleased(static_cast<int32>(EAbilitiesIndex::CrouchAbility));
-
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Crouch released"));
-	UE_LOG(LogBaseCharacter, Log, TEXT("Crouch released"));
 }
 
 void ABaseCharacter::DoSwitchItem()
@@ -126,9 +108,6 @@ void ABaseCharacter::GrantAbilities()
 		checkf(IsValid(AbilityClass), TEXT("Ability Class invalid while trying to grant abilities. Ability type: %s"), ANSI_TO_TCHAR(typeid(AbilityClass).name()));
 
 		AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(AbilityClass, 1, CurrentAbilityIndex, this));
-
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Granted ability: %s"), *AbilityClass->GetName()));
-		UE_LOG(LogBaseCharacter, Log, TEXT("Granted ability: %s"), *AbilityClass->GetName());
 
 		CurrentAbilityIndex++;
 	}
