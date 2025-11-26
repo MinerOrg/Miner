@@ -11,6 +11,8 @@
 AWorldLandscape::AWorldLandscape()
 {
 	bReplicates = false;
+	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bStartWithTickEnabled = true;
 
 	DynamicMeshComponent = CreateDefaultSubobject<UDynamicMeshComponent>(TEXT("DynamicMeshComponent"));
 	DynamicMeshComponent->SetMobility(EComponentMobility::Movable);
@@ -41,16 +43,15 @@ void AWorldLandscape::BeginPlay()
 	DynamicMeshComponent->SetDynamicMesh(DynamicMesh);
 
 	SetupNoise();
+	GenerateTerrain();
 }
 
 void AWorldLandscape::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	
 	checkf(IsValid(LocalClientPawn), TEXT("Client Pawn bad"));
 	FVector LocalClientPawnLocation = LocalClientPawn->GetActorLocation();
-
-	GEngine->AddOnScreenDebugMessage(-1, 100.f, FColor::Yellow, FString::Printf(TEXT("Skibidi")));
 
 	// If the player has moved out of bounds, make the mesh follow them. (No Z check for now)
 	if (FMath::RoundToInt(LastPlayerLocation.X / ChunkDistance) * ChunkDistance != FMath::RoundToInt(LocalClientPawnLocation.X / ChunkDistance) * ChunkDistance || FMath::RoundToInt(LastPlayerLocation.Y / ChunkDistance) * ChunkDistance != FMath::RoundToInt(LocalClientPawnLocation.Y / ChunkDistance) * ChunkDistance /* || FMath::RoundToInt(LastPlayerLocation.Z / ChunkDistance) * ChunkDistance != LocalClientPawnLocation.Z */) {
@@ -70,7 +71,7 @@ void AWorldLandscape::SetupNoise()
 {
 	Noise = new FastNoiseLite();
 
-	checkf(IsValid(UGameplayStatics::GetGameMode(GetWorld())), TEXT("SS"));
+	checkf(IsValid(UGameplayStatics::GetGameMode(GetWorld())), TEXT("Gamemode was bad"));
 	Seed = CastChecked<AWorldGameMode>(UGameplayStatics::GetGameMode(GetWorld()))->Seed;
 
 	Noise->SetSeed(Seed);
@@ -92,8 +93,6 @@ void AWorldLandscape::SetupNoise()
 
 void AWorldLandscape::GenerateTerrain()
 {
-	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Generating Terrain Mesh"));
-
 	checkf(IsValid(DynamicMeshComponent), TEXT("Dynamic Mesh Component was bad"));
 	checkf(IsValid(DynamicMesh), TEXT("Dynamic Mesh was bad"));
 	checkf(Noise, TEXT("Noise was bad"));
