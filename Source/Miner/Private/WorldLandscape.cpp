@@ -8,6 +8,8 @@
 #include "FastNoiseLite.h"
 #include "WorldGameMode.h"
 
+DEFINE_LOG_CATEGORY(LogLandscape);
+
 AWorldLandscape::AWorldLandscape()
 {
 	bReplicates = false;
@@ -128,10 +130,10 @@ void AWorldLandscape::InitialMeshGeneration(UE::Geometry::FDynamicMesh3& Mesh)
 			float VertexX = -RenderDistance + IndexX * Resolution;
 
 			// get noise for height
-			float Height = Noise->GetNoise(VertexX + LocalClientPawnLocation.X, VertexY + LocalClientPawnLocation.Y) * HeightScale;
+			float Height = Noise->GetNoise(VertexX + LocalClientPawnLocation.X / 50, VertexY + LocalClientPawnLocation.Y / 50) * HeightScale;
 
 			// create vertex and remember its index
-			int32 NewVertex = Mesh.AppendVertex(FVector3d(VertexX + LocalClientPawnLocation.X, VertexY + LocalClientPawnLocation.Y, Height));
+			int32 NewVertex = Mesh.AppendVertex(FVector3d(VertexX + LocalClientPawnLocation.X / 50, VertexY + LocalClientPawnLocation.Y / 50, Height));
 			check(Mesh.IsVertex(NewVertex));
 			Verticies.Add(NewVertex);
 		}

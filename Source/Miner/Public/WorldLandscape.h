@@ -8,6 +8,8 @@
 #include "FastNoiseLiteTypes.h"
 #include "WorldLandscape.generated.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(LogLandscape, Log, All);
+
 /**
  * AWorldLandscape is an Actor that generates a dynamic landscape mesh based on a seed
  */
