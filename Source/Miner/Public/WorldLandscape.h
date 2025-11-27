@@ -1,4 +1,4 @@
-// Copyright = me
+// Copyright Schuyler Zheng. All rights reserved.
 
 #pragma once
 
@@ -7,6 +7,8 @@
 #include "Components/DynamicMeshComponent.h"
 #include "FastNoiseLiteTypes.h"
 #include "WorldLandscape.generated.h"
+
+DECLARE_LOG_CATEGORY_EXTERN(LogLandscape, Log, All);
 
 /**
  * AWorldLandscape is an Actor that generates a dynamic landscape mesh based on a seed
@@ -58,10 +60,13 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	void SetupNoise();
 	void GenerateTerrain();
+
+	// Mesh generation steps
 	void InitialMeshGeneration(UE::Geometry::FDynamicMesh3& Mesh);
 	void PostGeneration(UE::Geometry::FDynamicMesh3& Mesh);
 
@@ -77,9 +82,20 @@ protected:
 
 	TObjectPtr<FastNoiseLite> Noise;
 
-private:
-	UPROPERTY()
-	APawn* LocalClientPawn;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "How much distance to go until checking the noise again."))
+	float Resolution = 1.0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "Height Scale of the Landscape"))
+	float HeightScale = 300.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape|Materials", meta = (ToolTip = "Default Material"))
+	UMaterialInterface* DefaultLandscapeMaterial;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "Chunk spacing/Distance to go until make chunk follow"))
+	float ChunkDistance = 1000.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "How far the chunk should go"))
+	float RenderDistance = 100.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Noise")
 	int Seed = 1337;
@@ -87,54 +103,53 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Noise")
 	float Frequency = 0.03f;
 
-	UPROPERTY(EditAnywhere, Category = "Noise")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Noise")
 	TEnumAsByte<FastNoiseLiteTypes_NoiseType> NoiseType = NoiseType_Perlin;
 
-	UPROPERTY(EditAnywhere, Category = "Noise")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Noise")
 	TEnumAsByte<FastNoiseLiteTypes_RotationType3D> RotationType3D = RotationType3D_None;
 
-	UPROPERTY(EditAnywhere, Category = "Noise")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Noise")
 	TEnumAsByte<FastNoiseLiteTypes_FractalType> FractalType = FractalType_FBm;
 
-	UPROPERTY(EditAnywhere, Category = "Noise")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Noise")
 	int FractalOctaves = 3;
 
-	UPROPERTY(EditAnywhere, Category = "Noise")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Noise")
 	float FractalLacunarity = 2.0f;
 
-	UPROPERTY(EditAnywhere, Category = "Noise")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Noise")
 	float FractalGain = 0.5f;
 
-	UPROPERTY(EditAnywhere, Category = "Noise")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Noise")
 	float FractalWeightedStrength = 0.0f;
 
-	UPROPERTY(EditAnywhere, Category = "Noise")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Noise")
 	float FractalPingPongStrength = 2.0f;
 
-	UPROPERTY(EditAnywhere, Category = "Noise")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Noise")
 	TEnumAsByte<FastNoiseLiteTypes_CellularDistanceFunction> CellularDistanceFunction = CellularDistanceFunction_EuclideanSq;
 
-	UPROPERTY(EditAnywhere, Category = "Noise")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Noise")
 	TEnumAsByte<FastNoiseLiteTypes_CellularReturnType> CellularReturnType = CellularReturnType_Distance;
 
-	UPROPERTY(EditAnywhere, Category = "Noise")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Noise")
 	float CellularJitter = 1.0f;
 
-	UPROPERTY(EditAnywhere, Category = "Noise")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Noise")
 	TEnumAsByte<FastNoiseLiteTypes_DomainWarpType> DomainWarpType = DomainWarpType_OpenSimplex2;
 
-	UPROPERTY(EditAnywhere, Category = "Noise")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Noise")
 	float DomainWarpAmp = 1.0f;
 
-	UPROPERTY(EditAnywhere, Category = "Landscape", meta = (ToolTip = "How much distance to go until checking the noise again."))
-	float Resolution = 1.0;
+	UE::Geometry::EValidityCheckFailMode ValidityCheckFailMode = UE::Geometry::EValidityCheckFailMode::Ensure;
 
-	UPROPERTY(EditAnywhere, Category = "Landscape", meta = (ToolTip = "Size of the Landscape"))
-	float TmpHalfSize = 101.f;
+	FDynamicMesh3::FValidityOptions ValidityOptions = { false, false };
 
-	UPROPERTY(EditAnywhere, Category = "Landscape", meta = (ToolTip = "Height Scale of the Landscape"))
-	float HeightScale = 300.0f;
+private:
+	UPROPERTY()
+	APawn* LocalClientPawn;
 
-	UPROPERTY(EditAnywhere, Category = "Landscape|Materials", meta = (ToolTip = "Default Material"))
-	UMaterialInterface* DefaultLandscapeMaterial;
+	UPROPERTY()
+	FVector LastPlayerLocation;
 };
