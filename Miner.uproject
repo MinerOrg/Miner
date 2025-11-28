@@ -254,7 +254,7 @@
 		},
 		{
 			"Name": "ReplicationSystemTestPlugin",
-			"Enabled": true
+			"Enabled": false
 		},
 		{
 			"Name": "TestFramework",
