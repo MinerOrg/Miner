@@ -70,6 +70,8 @@ protected:
 	void InitialMeshGeneration(UE::Geometry::FDynamicMesh3& Mesh);
 	void PostGeneration(UE::Geometry::FDynamicMesh3& Mesh);
 
+	void GenerateHeights();
+
 	UPROPERTY(Category = DynamicMeshActor, VisibleAnywhere, BlueprintReadOnly, meta = (ExposeFunctionCategories = "Mesh,Rendering,Physics,Components|StaticMesh", AllowPrivateAccess = "true"))
 	TObjectPtr<class UDynamicMeshComponent> DynamicMeshComponent;
 
@@ -152,4 +154,7 @@ private:
 
 	UPROPERTY()
 	FVector LastPlayerLocation;
+
+	UE::Tasks::TTask<TArray<double>> HeightCalculationTask;
+	TArray<double> GeneratedHeights;
 };

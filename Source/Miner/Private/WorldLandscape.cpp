@@ -56,7 +56,7 @@ void AWorldLandscape::Tick(float DeltaTime)
 	FVector LocalClientPawnLocation = LocalClientPawn->GetActorLocation();
 
 	// If the player has moved out of bounds, make the mesh follow them. (No Z check for now)
-	if (FMath::RoundToInt(LastPlayerLocation.X / ChunkDistance) * ChunkDistance != FMath::RoundToInt(LocalClientPawnLocation.X / ChunkDistance) * ChunkDistance || FMath::RoundToInt(LastPlayerLocation.Y / ChunkDistance) * ChunkDistance != FMath::RoundToInt(LocalClientPawnLocation.Y / ChunkDistance) * ChunkDistance /* || FMath::RoundToInt(LastPlayerLocation.Z / ChunkDistance) * ChunkDistance != LocalClientPawnLocation.Z */) {
+	if (FMath::RoundToInt(LastPlayerLocation.X / ChunkDistance) * ChunkDistance != FMath::RoundToInt(LocalClientPawnLocation.X / ChunkDistance) * ChunkDistance || FMath::RoundToInt(LastPlayerLocation.Y / ChunkDistance) * ChunkDistance != FMath::RoundToInt(LocalClientPawnLocation.Y / ChunkDistance) * ChunkDistance /* || FMath::RoundToInt(LastPlayerLocation.Z / ChunkDistance) * ChunkDistance != LocalClientPawnLocation.Z */ || HeightCalculationTask.IsValid()) {
 		LastPlayerLocation = LocalClientPawnLocation;
 		GenerateTerrain();
 	}
@@ -99,7 +99,8 @@ void AWorldLandscape::GenerateTerrain()
 	checkf(IsValid(DynamicMesh), TEXT("Dynamic Mesh was bad"));
 	checkf(Noise, TEXT("Noise was bad"));
 	
-	DynamicMesh->InitializeMesh();
+	if (!HeightCalculationTask.IsValid()) DynamicMesh->InitializeMesh();
+	if (!HeightCalculationTask.IsValid()) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Height Calculation Task was not valid"));
 
 	// EditMesh > just using notifymesh because more safe
 	DynamicMesh->EditMesh([&](UE::Geometry::FDynamicMesh3& Mesh) {
@@ -122,15 +123,30 @@ void AWorldLandscape::InitialMeshGeneration(UE::Geometry::FDynamicMesh3& Mesh)
 	if (ReserveCount > TNumericLimits<int32>::Max()) ReserveCount = TNumericLimits<int32>::Max();
 	Verticies.Reserve((int32)ReserveCount);
 
+	TArray<double> Heights;
+	GenerateHeights();
+
+	if (HeightCalculationTask.IsCompleted() == false) {
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Height Calculation Task Not Completed Yet"));
+		return;
+	}
+
+	Heights = HeightCalculationTask.GetResult();
+
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Height Calculation Task Completed with %d heights"), Heights.Num()));
+
+	HeightCalculationTask = UE::Tasks::TTask<TArray<double>>();
+
 	// create vertices in row-major order: x changes fastest (this makes it faster?)
 	for (int IndexY = 0; IndexY < NumPointsPerLine; ++IndexY) {
-		float VertexY = -RenderDistance + IndexY * Resolution;
+		double VertexY = -RenderDistance + IndexY * Resolution;
 
 		for (int IndexX = 0; IndexX < NumPointsPerLine; ++IndexX) {
-			float VertexX = -RenderDistance + IndexX * Resolution;
+			double VertexX = -RenderDistance + IndexX * Resolution;
 
 			// get noise for height
-			float Height = Noise->GetNoise(VertexX + LocalClientPawnLocation.X / 50, VertexY + LocalClientPawnLocation.Y / 50) * HeightScale;
+			double Height = Heights[0];
+			Heights.RemoveAt(0);
 
 			// create vertex and remember its index
 			int32 NewVertex = Mesh.AppendVertex(FVector3d(VertexX + LocalClientPawnLocation.X / 50, VertexY + LocalClientPawnLocation.Y / 50, Height));
@@ -160,6 +176,32 @@ void AWorldLandscape::InitialMeshGeneration(UE::Geometry::FDynamicMesh3& Mesh)
 void AWorldLandscape::PostGeneration(UE::Geometry::FDynamicMesh3& Mesh)
 {
 	
+}
+
+void AWorldLandscape::GenerateHeights()
+{
+	HeightCalculationTask = UE::Tasks::Launch(UE_SOURCE_LOCATION, [this]() {
+		const FVector LocalClientPawnLocation = LocalClientPawn->GetActorLocation();
+		const int NumPointsPerLine = FMath::FloorToInt((RenderDistance * 2.0f) / Resolution) + 1;
+		int64 ReserveCount = (int64)NumPointsPerLine * (int64)NumPointsPerLine;
+		GeneratedHeights.Reserve((int32)ReserveCount);
+
+		// create heights in row-major order: x changes fastest (this makes it faster?)
+		for (int IndexY = 0; IndexY < NumPointsPerLine; ++IndexY) {
+			double VertexY = -RenderDistance + IndexY * Resolution;
+
+			for (int IndexX = 0; IndexX < NumPointsPerLine; ++IndexX) {
+				double VertexX = -RenderDistance + IndexX * Resolution;
+
+				// get noise for height
+				GeneratedHeights.Add(Noise->GetNoise(VertexX + LocalClientPawnLocation.X / 50, VertexY + LocalClientPawnLocation.Y / 50) * HeightScale);
+			}
+		}
+
+		checkf(GeneratedHeights.Num() < 0 && GeneratedHeights.Num() != ReserveCount, TEXT("Generated heights array was too small"));
+
+		return GeneratedHeights;
+	});
 }
 
 UDynamicMeshPool* AWorldLandscape::GetComputeMeshPool()
