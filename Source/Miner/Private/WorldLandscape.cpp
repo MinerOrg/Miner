@@ -95,6 +95,8 @@ void AWorldLandscape::SetupNoise()
 
 void AWorldLandscape::GenerateTerrain()
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(GenerateTerrain);
+
 	checkf(IsValid(DynamicMeshComponent), TEXT("Dynamic Mesh Component was bad"));
 	checkf(IsValid(DynamicMesh), TEXT("Dynamic Mesh was bad"));
 	checkf(Noise, TEXT("Noise was bad"));
