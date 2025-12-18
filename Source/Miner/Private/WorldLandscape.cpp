@@ -7,6 +7,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "FastNoiseLite.h"
 #include "WorldGameMode.h"
+#include "WorldGenerationThread.h"
 
 DEFINE_LOG_CATEGORY(LogLandscape);
 
@@ -29,11 +30,16 @@ AWorldLandscape::AWorldLandscape()
 	DynamicMeshComponent->SetMaterial(0, DefaultLandscapeMaterial);
 
 	SetRootComponent(DynamicMeshComponent);
+
+	LastPlayerLocation = FVector::ZeroVector;
+	LocalClientPawn = nullptr;
 }
 
 void AWorldLandscape::BeginPlay()
 {
 	Super::BeginPlay();
+
+	WorldGenThread = new WorldGenerationThread();
 
 	checkf(ChunkDistance != 0, TEXT("Chunk distance cannot be 0"));
 

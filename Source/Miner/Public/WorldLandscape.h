@@ -146,6 +146,8 @@ protected:
 
 	FDynamicMesh3::FValidityOptions ValidityOptions = { false, false };
 
+	FRunnable* WorldGenThread;
+
 private:
 	UPROPERTY()
 	APawn* LocalClientPawn;
