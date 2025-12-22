@@ -58,6 +58,16 @@ public:
 	UFUNCTION(BlueprintCallable, Category = DynamicMeshActor)
 	void FreeAllComputeMeshes();
 
+	/** The function for the world generation thread to run, and give the generated points */
+	UFUNCTION(BlueprintCallable, Category = "Landscape Generation")
+	void GenerateVertexLocations();
+
+	UPROPERTY(BlueprintReadOnly, meta = (Tooltip = "The local pawn for this client. Does not need to be changed by blueprints because it is automatically set at beginplay in c++."))
+	APawn* LocalClientPawn;
+
+	UPROPERTY(BlueprintReadWrite)
+	FVector LastPlayerLocation;
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
@@ -65,6 +75,8 @@ protected:
 
 	void SetupNoise();
 	void GenerateTerrain();
+
+	void Print() { UE_LOG(LogLandscape, Warning, TEXT("Hello World")); }
 
 	// Mesh generation steps
 	void InitialMeshGeneration(UE::Geometry::FDynamicMesh3& Mesh);
@@ -146,12 +158,7 @@ protected:
 
 	FDynamicMesh3::FValidityOptions ValidityOptions = { false, false };
 
-	FRunnable* WorldGenThread;
+	FRunnable* WorldGenRunnable;
 
-private:
-	UPROPERTY()
-	APawn* LocalClientPawn;
-
-	UPROPERTY()
-	FVector LastPlayerLocation;
+	FRunnableThread* WorldGenThread;
 };

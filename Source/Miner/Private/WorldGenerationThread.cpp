@@ -1,10 +1,12 @@
 // Copyright Schuyler Zheng. All Rights Reserved.
 
 #include "WorldGenerationThread.h"
+#include "WorldLandscape.h"
 
-FWorldGenerationThread::FWorldGenerationThread()
+FWorldGenerationThread::FWorldGenerationThread(AWorldLandscape* WorldLandscape, int Seed, FVector3d PlayerLocation)
 {
-
+	OwnerLandscape = WorldLandscape;
+	LandscapeSeed = Seed;
 }
 
 FWorldGenerationThread::~FWorldGenerationThread()
@@ -14,12 +16,16 @@ FWorldGenerationThread::~FWorldGenerationThread()
 
 bool FWorldGenerationThread::Init()
 {
-	return false;
+
+
+	return true;
 }
 
 uint32 FWorldGenerationThread::Run()
 {
-	return uint32();
+	OwnerLandscape->GenerateVertexLocations();
+
+	return 0;
 }
 
 void FWorldGenerationThread::Stop()
@@ -35,11 +41,4 @@ void FWorldGenerationThread::Exit()
 FSingleThreadRunnable* FWorldGenerationThread::GetSingleThreadInterface()
 {
 	return nullptr;
-}
-
-TArray<double> FWorldGenerationThread::GenerateHeights()
-{
-
-
-	return TArray<double>();
 }

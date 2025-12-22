@@ -5,15 +5,16 @@
 #include "CoreMinimal.h"
 
 class FSingleThreadRunnable;
+class AWorldLandscape;
 
 /**
  * The thread that handles world generation tasks
  * This will free up the game thread and allow for smoother gameplay
  */
-class MINER_API FWorldGenerationThread : FRunnable
+class MINER_API FWorldGenerationThread : public FRunnable
 {
 public:
-	FWorldGenerationThread();
+	FWorldGenerationThread(AWorldLandscape* WorldLandscape, int Seed, FVector3d PlayerLocation);
 	~FWorldGenerationThread();
 
 	virtual bool Init() override;
@@ -23,5 +24,6 @@ public:
 	virtual FSingleThreadRunnable* GetSingleThreadInterface() override;
 
 protected:
-	TArray<double> GenerateHeights();
+	TObjectPtr<AWorldLandscape> OwnerLandscape;
+	int LandscapeSeed;
 };

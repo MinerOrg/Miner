@@ -33,13 +33,13 @@ AWorldLandscape::AWorldLandscape()
 
 	LastPlayerLocation = FVector::ZeroVector;
 	LocalClientPawn = nullptr;
+	WorldGenRunnable = nullptr;
+	WorldGenThread = nullptr;
 }
 
 void AWorldLandscape::BeginPlay()
 {
 	Super::BeginPlay();
-
-	WorldGenThread = new WorldGenerationThread();
 
 	checkf(ChunkDistance != 0, TEXT("Chunk distance cannot be 0"));
 
@@ -51,6 +51,10 @@ void AWorldLandscape::BeginPlay()
 	DynamicMeshComponent->SetDynamicMesh(DynamicMesh);
 
 	SetupNoise();
+
+	WorldGenRunnable = new FWorldGenerationThread(this, Seed, LocalClientPawn->GetActorLocation());
+	WorldGenThread = FRunnableThread::Create(WorldGenRunnable, TEXT("WorldGenerationThread"));
+
 	GenerateTerrain();
 }
 
@@ -130,6 +134,8 @@ void AWorldLandscape::InitialMeshGeneration(UE::Geometry::FDynamicMesh3& Mesh)
 	if (ReserveCount > TNumericLimits<int32>::Max()) ReserveCount = TNumericLimits<int32>::Max();
 	Verticies.Reserve((int32)ReserveCount);
 
+	WorldGenRunnable->Run();
+
 	// create vertices in row-major order: x changes fastest (this makes it faster?)
 	for (int IndexY = 0; IndexY < NumPointsPerLine; ++IndexY) {
 		float VertexY = -RenderDistance + IndexY * Resolution;
@@ -168,6 +174,11 @@ void AWorldLandscape::InitialMeshGeneration(UE::Geometry::FDynamicMesh3& Mesh)
 void AWorldLandscape::PostGeneration(UE::Geometry::FDynamicMesh3& Mesh)
 {
 	
+}
+
+void AWorldLandscape::GenerateVertexLocations()
+{
+	Print();
 }
 
 UDynamicMeshPool* AWorldLandscape::GetComputeMeshPool()
