@@ -38,7 +38,7 @@
 		},
 		{
 			"Name": "ApexDestruction",
-			"Enabled": false
+			"Enabled": true
 		},
 		{
 			"Name": "CelestialVault",

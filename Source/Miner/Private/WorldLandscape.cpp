@@ -7,7 +7,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "FastNoiseLite.h"
 #include "WorldGameMode.h"
-#include "WorldGenerationThread.h"
+#include "WorldGenerationRunnable.h"
 
 DEFINE_LOG_CATEGORY(LogLandscape);
 
@@ -52,7 +52,7 @@ void AWorldLandscape::BeginPlay()
 
 	SetupNoise();
 
-	WorldGenRunnable = new FWorldGenerationThread(this, Seed, LocalClientPawn->GetActorLocation());
+	WorldGenRunnable = new FWorldGenerationRunnable(this, Seed, LocalClientPawn->GetActorLocation());
 	WorldGenThread = FRunnableThread::Create(WorldGenRunnable, TEXT("WorldGenerationThread"));
 
 	GenerateTerrain();
@@ -81,11 +81,14 @@ void AWorldLandscape::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void AWorldLandscape::SetupNoise()
 {
+	// Make a new noise 
 	Noise = new FastNoiseLite();
 
+	// Get the seed from the gamemode
 	checkf(IsValid(UGameplayStatics::GetGameMode(GetWorld())), TEXT("Gamemode was bad"));
 	Seed = CastChecked<AWorldGameMode>(UGameplayStatics::GetGameMode(GetWorld()))->Seed;
 
+	// Set noise parameters
 	Noise->SetSeed(Seed);
 	Noise->SetFrequency(Frequency);
 	Noise->SetNoiseType(static_cast<FastNoiseLite::NoiseType>(NoiseType.GetValue()));
@@ -143,15 +146,16 @@ void AWorldLandscape::InitialMeshGeneration(UE::Geometry::FDynamicMesh3& Mesh)
 		for (int IndexX = 0; IndexX < NumPointsPerLine; ++IndexX) {
 			float VertexX = -RenderDistance + IndexX * Resolution;
 
-			// get noise for height
-			float Height = Noise->GetNoise(VertexX + LocalClientPawnLocation.X / 50, VertexY + LocalClientPawnLocation.Y / 50) * HeightScale;
-
 			// create vertex and remember its index
-			int32 NewVertex = Mesh.AppendVertex(FVector3d(VertexX + LocalClientPawnLocation.X / 50, VertexY + LocalClientPawnLocation.Y / 50, Height));
+			int32 NewVertex = Mesh.AppendVertex(GeneratedVertexLocations[0]);    
+			GeneratedVertexLocations.RemoveAt(0);    // Remove the first index because it won't be needed + easy indexing. May be slow though
 			check(Mesh.IsVertex(NewVertex));
 			Verticies.Add(NewVertex);
 		}
 	}
+
+	// Clear the array for it to be generated again
+	GeneratedVertexLocations = TArray<FVector>();
 
 	// Create the triangles
 	for (int IndexY = 0; IndexY < NumPointsPerLine - 1; ++IndexY) {
@@ -178,7 +182,24 @@ void AWorldLandscape::PostGeneration(UE::Geometry::FDynamicMesh3& Mesh)
 
 void AWorldLandscape::GenerateVertexLocations()
 {
-	Print();
+	const FVector LocalClientPawnLocation = LocalClientPawn->GetActorLocation();
+	const int NumPointsPerLine = FMath::FloorToInt((RenderDistance * 2.0f) / Resolution) + 1;
+
+	// create vertices in row-major order: x changes fastest (this makes it faster?)
+	for (int IndexY = 0; IndexY < NumPointsPerLine; ++IndexY) {
+		float VertexY = -RenderDistance + IndexY * Resolution;
+
+		for (int IndexX = 0; IndexX < NumPointsPerLine; ++IndexX) {
+			float VertexX = -RenderDistance + IndexX * Resolution;
+
+			// get noise for height
+			float Height = Noise->GetNoise(VertexX + LocalClientPawnLocation.X / 50, VertexY + LocalClientPawnLocation.Y / 50) * HeightScale;
+
+			// create vertex and remember its index
+			FVector3d NewVertex = FVector3d(VertexX + LocalClientPawnLocation.X / 50, VertexY + LocalClientPawnLocation.Y / 50, Height);
+			GeneratedVertexLocations.Add(NewVertex);
+		}
+	}
 }
 
 UDynamicMeshPool* AWorldLandscape::GetComputeMeshPool()
