@@ -3,10 +3,10 @@
 #include "WorldGenerationRunnable.h"
 #include "WorldLandscape.h"
 
-FWorldGenerationRunnable::FWorldGenerationRunnable(AWorldLandscape* WorldLandscape, int Seed, FVector3d PlayerLocation)
+FWorldGenerationRunnable::FWorldGenerationRunnable(AWorldLandscape* WorldLandscape, UWorld* World)
 {
 	OwnerLandscape = WorldLandscape;
-	LandscapeSeed = Seed;
+	CurrentWorld = World;
 }
 
 FWorldGenerationRunnable::~FWorldGenerationRunnable()
@@ -23,7 +23,8 @@ bool FWorldGenerationRunnable::Init()
 
 uint32 FWorldGenerationRunnable::Run()
 {
-	OwnerLandscape->GenerateVertexLocations();
+	check(IsValid(CurrentWorld));
+	if (CurrentWorld->IsGameWorld()) OwnerLandscape->GenerateVertexLocations();
 
 	return 0;
 }

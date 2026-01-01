@@ -52,7 +52,8 @@ void AWorldLandscape::BeginPlay()
 
 	SetupNoise();
 
-	WorldGenRunnable = new FWorldGenerationRunnable(this, Seed, LocalClientPawn->GetActorLocation());
+	// Create the thread that generates the vertex locations
+	WorldGenRunnable = new FWorldGenerationRunnable(this, GetWorld());
 	WorldGenThread = FRunnableThread::Create(WorldGenRunnable, TEXT("WorldGenerationThread"));
 
 	GenerateTerrain();
@@ -129,13 +130,16 @@ void AWorldLandscape::GenerateTerrain()
 
 void AWorldLandscape::InitialMeshGeneration(UE::Geometry::FDynamicMesh3& Mesh)
 {
-	const FVector LocalClientPawnLocation = LocalClientPawn->GetActorLocation();
+	// Won't generate in a non-game thing because dynamicmesh isn't initialized
+	if (GetWorld()->IsGameWorld()) { const FVector3d LocalClientPawnLocation = LocalClientPawn->GetActorLocation(); }
+	else { const FVector3d LocalClientPawnLocation = FVector3d(0, 0, 0); }
 	const int NumPointsPerLine = FMath::FloorToInt((RenderDistance * 2.0f) / Resolution) + 1;
 
 	TArray<int32> Verticies;
 	int64 ReserveCount = (int64)NumPointsPerLine * (int64)NumPointsPerLine;
 	if (ReserveCount > TNumericLimits<int32>::Max()) ReserveCount = TNumericLimits<int32>::Max();
 	Verticies.Reserve((int32)ReserveCount);
+	GeneratedVertexLocations.Reserve((int32)ReserveCount);
 
 	WorldGenRunnable->Run();
 
@@ -147,7 +151,8 @@ void AWorldLandscape::InitialMeshGeneration(UE::Geometry::FDynamicMesh3& Mesh)
 			float VertexX = -RenderDistance + IndexX * Resolution;
 
 			// create vertex and remember its index
-			int32 NewVertex = Mesh.AppendVertex(GeneratedVertexLocations[0]);    
+			int32 NewVertex = Mesh.AppendVertex(GeneratedVertexLocations[0]);
+			UE_LOG(LogLandscape, Log, TEXT("Location: %s"), *GeneratedVertexLocations[0].ToString());
 			GeneratedVertexLocations.RemoveAt(0);    // Remove the first index because it won't be needed + easy indexing. May be slow though
 			check(Mesh.IsVertex(NewVertex));
 			Verticies.Add(NewVertex);

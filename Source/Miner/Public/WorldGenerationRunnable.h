@@ -14,7 +14,7 @@ class AWorldLandscape;
 class MINER_API FWorldGenerationRunnable : public FRunnable
 {
 public:
-	FWorldGenerationRunnable(AWorldLandscape* WorldLandscape, int Seed, FVector3d PlayerLocation);
+	FWorldGenerationRunnable(AWorldLandscape* WorldLandscape, UWorld* World);
 	~FWorldGenerationRunnable();
 
 	virtual bool Init() override;
@@ -25,5 +25,5 @@ public:
 
 protected:
 	TObjectPtr<AWorldLandscape> OwnerLandscape;
-	int LandscapeSeed;
+	UWorld* CurrentWorld;
 };
