@@ -56,6 +56,11 @@ void AWorldLandscape::BeginPlay()
 	WorldGenRunnable = new FWorldGenerationRunnable(this, GetWorld());
 	WorldGenThread = FRunnableThread::Create(WorldGenRunnable, TEXT("WorldGenerationThread"));
 
+	const int NumPointsPerLine = FMath::FloorToInt((RenderDistance * 2.0f) / Resolution) + 1;
+	int64 ReserveCount = (int64)NumPointsPerLine * (int64)NumPointsPerLine;
+	if (ReserveCount > TNumericLimits<int32>::Max()) ReserveCount = TNumericLimits<int32>::Max();
+	GeneratedVertexLocations.Reserve((int32)ReserveCount);
+
 	GenerateTerrain();
 }
 
@@ -78,6 +83,7 @@ void AWorldLandscape::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 
 	FreeAllComputeMeshes();
+	//WorldGenThread->FRunnableThread::Kill(false);    // Kill the thread because it is useless now (I give up with the compile errors)
 }
 
 void AWorldLandscape::SetupNoise()
@@ -139,11 +145,11 @@ void AWorldLandscape::InitialMeshGeneration(UE::Geometry::FDynamicMesh3& Mesh)
 	int64 ReserveCount = (int64)NumPointsPerLine * (int64)NumPointsPerLine;
 	if (ReserveCount > TNumericLimits<int32>::Max()) ReserveCount = TNumericLimits<int32>::Max();
 	Verticies.Reserve((int32)ReserveCount);
-	GeneratedVertexLocations.Reserve((int32)ReserveCount);
 
+	// Ask the world generation thread to make the landscape data
 	WorldGenRunnable->Run();
 
-	// create vertices in row-major order: x changes fastest (this makes it faster?)
+	// apply generated verticies
 	for (int IndexY = 0; IndexY < NumPointsPerLine; ++IndexY) {
 		float VertexY = -RenderDistance + IndexY * Resolution;
 
@@ -160,7 +166,7 @@ void AWorldLandscape::InitialMeshGeneration(UE::Geometry::FDynamicMesh3& Mesh)
 	}
 
 	// Clear the array for it to be generated again
-	GeneratedVertexLocations = TArray<FVector>();
+	GeneratedVertexLocations.Empty();
 
 	// Create the triangles
 	for (int IndexY = 0; IndexY < NumPointsPerLine - 1; ++IndexY) {
