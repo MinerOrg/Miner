@@ -15,6 +15,7 @@ DECLARE_LOG_CATEGORY_EXTERN(LogLandscape, Log, All);
  */
 
 class FastNoiseLite;
+class FWorldGenerationRunnable;
 
 UCLASS(ConversionRoot, ComponentWrapperClass, ClassGroup = DynamicMesh, meta = (ChildCanTick), MinimalAPI)
 class AWorldLandscape : public AActor
@@ -71,8 +72,8 @@ protected:
 	void GenerateTerrain();
 
 	// Mesh generation steps
-	void InitialMeshGeneration(UE::Geometry::FDynamicMesh3& Mesh);
-	void PostGeneration(UE::Geometry::FDynamicMesh3& Mesh);
+	void RequestGenerateMeshData(UE::Geometry::FDynamicMesh3& Mesh);
+	void ApplyGeneratedMeshData(UE::Geometry::FDynamicMesh3& Mesh);
 
 	UPROPERTY(Category = DynamicMeshActor, VisibleAnywhere, BlueprintReadOnly, meta = (ExposeFunctionCategories = "Mesh,Rendering,Physics,Components|StaticMesh", AllowPrivateAccess = "true"))
 	TObjectPtr<class UDynamicMeshComponent> DynamicMeshComponent;
@@ -150,9 +151,9 @@ protected:
 
 	FDynamicMesh3::FValidityOptions ValidityOptions = { false, false };
 
-	FRunnable* WorldGenRunnable;
+	FWorldGenerationRunnable* WorldGenerationRunnable;
 
-	FRunnableThread* WorldGenThread;
+	bool bCurrentlyGenerating = false;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Landscape Generation")
 	TArray<FVector> GeneratedVertexLocations;

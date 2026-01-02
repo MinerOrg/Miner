@@ -33,8 +33,7 @@ AWorldLandscape::AWorldLandscape()
 
 	LastPlayerLocation = FVector::ZeroVector;
 	LocalClientPawn = nullptr;
-	WorldGenRunnable = nullptr;
-	WorldGenThread = nullptr;
+	WorldGenerationRunnable = nullptr;
 }
 
 void AWorldLandscape::BeginPlay()
@@ -53,14 +52,14 @@ void AWorldLandscape::BeginPlay()
 	SetupNoise();
 
 	// Create the thread that generates the vertex locations
-	WorldGenRunnable = new FWorldGenerationRunnable(this, GetWorld());
-	WorldGenThread = FRunnableThread::Create(WorldGenRunnable, TEXT("WorldGenerationThread"));
+	WorldGenerationRunnable = new FWorldGenerationRunnable(this, GetWorld());
 
 	const int NumPointsPerLine = FMath::FloorToInt((RenderDistance * 2.0f) / Resolution) + 1;
 	int64 ReserveCount = (int64)NumPointsPerLine * (int64)NumPointsPerLine;
 	if (ReserveCount > TNumericLimits<int32>::Max()) ReserveCount = TNumericLimits<int32>::Max();
 	GeneratedVertexLocations.Reserve((int32)ReserveCount);
 
+	GenerateVertexLocations();
 	GenerateTerrain();
 }
 
@@ -71,10 +70,17 @@ void AWorldLandscape::Tick(float DeltaTime)
 	checkf(IsValid(LocalClientPawn), TEXT("Client Pawn bad"));
 	FVector LocalClientPawnLocation = LocalClientPawn->GetActorLocation();
 
-	// If the player has moved out of bounds, make the mesh follow them. (No Z check for now)
+	if (!WorldGenerationRunnable->bGenerate && bCurrentlyGenerating) { GenerateTerrain(); }
+
+	// If the player has moved out of bounds, make the mesh follow them. (No Z check for now) (make sure that this runs last because if it is generating it will return)
 	if (FMath::RoundToInt(LastPlayerLocation.X / ChunkDistance) * ChunkDistance != FMath::RoundToInt(LocalClientPawnLocation.X / ChunkDistance) * ChunkDistance || FMath::RoundToInt(LastPlayerLocation.Y / ChunkDistance) * ChunkDistance != FMath::RoundToInt(LocalClientPawnLocation.Y / ChunkDistance) * ChunkDistance /* || FMath::RoundToInt(LastPlayerLocation.Z / ChunkDistance) * ChunkDistance != LocalClientPawnLocation.Z */) {
+		if (WorldGenerationRunnable->bGenerate) { return; }
+		
 		LastPlayerLocation = LocalClientPawnLocation;
-		GenerateTerrain();
+
+		// Request mesh data to be generated (apply the mesh later)
+		WorldGenerationRunnable->bGenerate = true;
+		bCurrentlyGenerating = true;
 	}
 }
 
@@ -83,7 +89,7 @@ void AWorldLandscape::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 
 	FreeAllComputeMeshes();
-	//WorldGenThread->FRunnableThread::Kill(false);    // Kill the thread because it is useless now (I give up with the compile errors)
+	delete WorldGenerationRunnable;
 }
 
 void AWorldLandscape::SetupNoise()
@@ -115,6 +121,8 @@ void AWorldLandscape::SetupNoise()
 
 void AWorldLandscape::GenerateTerrain()
 {
+	bCurrentlyGenerating = false;
+
 	TRACE_CPUPROFILER_EVENT_SCOPE(GenerateTerrain);
 
 	checkf(IsValid(DynamicMeshComponent), TEXT("Dynamic Mesh Component was bad"));
@@ -125,8 +133,8 @@ void AWorldLandscape::GenerateTerrain()
 
 	// EditMesh > just using notifymesh because more safe
 	DynamicMesh->EditMesh([&](UE::Geometry::FDynamicMesh3& Mesh) {
-		InitialMeshGeneration(Mesh);
-		PostGeneration(Mesh);
+		RequestGenerateMeshData(Mesh);
+		ApplyGeneratedMeshData(Mesh);
 
 		// Final validity checks
 		ensureMsgf(Mesh.CheckValidity(ValidityOptions, ValidityCheckFailMode), TEXT("Mesh was not valid"));
@@ -134,7 +142,7 @@ void AWorldLandscape::GenerateTerrain()
 	});
 }
 
-void AWorldLandscape::InitialMeshGeneration(UE::Geometry::FDynamicMesh3& Mesh)
+void AWorldLandscape::RequestGenerateMeshData(UE::Geometry::FDynamicMesh3& Mesh)
 {
 	// Won't generate in a non-game thing because dynamicmesh isn't initialized
 	if (GetWorld()->IsGameWorld()) { const FVector3d LocalClientPawnLocation = LocalClientPawn->GetActorLocation(); }
@@ -145,9 +153,6 @@ void AWorldLandscape::InitialMeshGeneration(UE::Geometry::FDynamicMesh3& Mesh)
 	int64 ReserveCount = (int64)NumPointsPerLine * (int64)NumPointsPerLine;
 	if (ReserveCount > TNumericLimits<int32>::Max()) ReserveCount = TNumericLimits<int32>::Max();
 	Verticies.Reserve((int32)ReserveCount);
-
-	// Ask the world generation thread to make the landscape data
-	WorldGenRunnable->Run();
 
 	// apply generated verticies
 	for (int IndexY = 0; IndexY < NumPointsPerLine; ++IndexY) {
@@ -186,7 +191,7 @@ void AWorldLandscape::InitialMeshGeneration(UE::Geometry::FDynamicMesh3& Mesh)
 	}
 }
 
-void AWorldLandscape::PostGeneration(UE::Geometry::FDynamicMesh3& Mesh)
+void AWorldLandscape::ApplyGeneratedMeshData(UE::Geometry::FDynamicMesh3& Mesh)
 {
 	
 }
@@ -211,6 +216,8 @@ void AWorldLandscape::GenerateVertexLocations()
 			GeneratedVertexLocations.Add(NewVertex);
 		}
 	}
+
+	WorldGenerationRunnable->bGenerate = false;
 }
 
 UDynamicMeshPool* AWorldLandscape::GetComputeMeshPool()

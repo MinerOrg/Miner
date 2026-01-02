@@ -3,9 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "HAL/Runnable.h"
 
 class FSingleThreadRunnable;
 class AWorldLandscape;
+
+DECLARE_LOG_CATEGORY_EXTERN(LogWorldGenerationThread, Log, All);
 
 /**
  * The thread that handles world generation tasks
@@ -23,7 +26,12 @@ public:
 	virtual void Exit() override;
 	virtual FSingleThreadRunnable* GetSingleThreadInterface() override;
 
+	bool bGenerate = false;
+
 protected:
 	TObjectPtr<AWorldLandscape> OwnerLandscape;
 	UWorld* CurrentWorld;
+	
+	FRunnableThread* Thread;
+	bool bRunThread = true;
 };
