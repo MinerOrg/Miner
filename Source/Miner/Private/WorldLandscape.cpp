@@ -7,6 +7,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "FastNoiseLite.h"
 #include "WorldGameMode.h"
+#include "WorldGenerationRunnable.h"
 
 DEFINE_LOG_CATEGORY(LogLandscape);
 
@@ -29,6 +30,10 @@ AWorldLandscape::AWorldLandscape()
 	DynamicMeshComponent->SetMaterial(0, DefaultLandscapeMaterial);
 
 	SetRootComponent(DynamicMeshComponent);
+
+	LastPlayerLocation = FVector::ZeroVector;
+	LocalClientPawn = nullptr;
+	WorldGenerationRunnable = nullptr;
 }
 
 void AWorldLandscape::BeginPlay()
@@ -45,6 +50,16 @@ void AWorldLandscape::BeginPlay()
 	DynamicMeshComponent->SetDynamicMesh(DynamicMesh);
 
 	SetupNoise();
+
+	// Create the thread that generates the vertex locations
+	WorldGenerationRunnable = new FWorldGenerationRunnable(this, GetWorld());
+
+	const int NumPointsPerLine = FMath::FloorToInt((RenderDistance * 2.0f) / Resolution) + 1;
+	int64 ReserveCount = (int64)NumPointsPerLine * (int64)NumPointsPerLine;
+	if (ReserveCount > TNumericLimits<int32>::Max()) ReserveCount = TNumericLimits<int32>::Max();
+	GeneratedVertexLocations.Reserve((int32)ReserveCount);
+
+	GenerateVertexLocations();
 	GenerateTerrain();
 }
 
@@ -55,10 +70,17 @@ void AWorldLandscape::Tick(float DeltaTime)
 	checkf(IsValid(LocalClientPawn), TEXT("Client Pawn bad"));
 	FVector LocalClientPawnLocation = LocalClientPawn->GetActorLocation();
 
-	// If the player has moved out of bounds, make the mesh follow them. (No Z check for now)
+	if (!WorldGenerationRunnable->bGenerate && bCurrentlyGenerating) { GenerateTerrain(); }
+
+	// If the player has moved out of bounds, make the mesh follow them. (No Z check for now) (make sure that this runs last because if it is generating it will return)
 	if (FMath::RoundToInt(LastPlayerLocation.X / ChunkDistance) * ChunkDistance != FMath::RoundToInt(LocalClientPawnLocation.X / ChunkDistance) * ChunkDistance || FMath::RoundToInt(LastPlayerLocation.Y / ChunkDistance) * ChunkDistance != FMath::RoundToInt(LocalClientPawnLocation.Y / ChunkDistance) * ChunkDistance /* || FMath::RoundToInt(LastPlayerLocation.Z / ChunkDistance) * ChunkDistance != LocalClientPawnLocation.Z */) {
+		if (WorldGenerationRunnable->bGenerate) { return; }
+		
 		LastPlayerLocation = LocalClientPawnLocation;
-		GenerateTerrain();
+
+		// Request mesh data to be generated (apply the mesh later)
+		WorldGenerationRunnable->bGenerate = true;
+		bCurrentlyGenerating = true;
 	}
 }
 
@@ -67,15 +89,19 @@ void AWorldLandscape::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 
 	FreeAllComputeMeshes();
+	delete WorldGenerationRunnable;
 }
 
 void AWorldLandscape::SetupNoise()
 {
+	// Make a new noise 
 	Noise = new FastNoiseLite();
 
+	// Get the seed from the gamemode
 	checkf(IsValid(UGameplayStatics::GetGameMode(GetWorld())), TEXT("Gamemode was bad"));
 	Seed = CastChecked<AWorldGameMode>(UGameplayStatics::GetGameMode(GetWorld()))->Seed;
 
+	// Set noise parameters
 	Noise->SetSeed(Seed);
 	Noise->SetFrequency(Frequency);
 	Noise->SetNoiseType(static_cast<FastNoiseLite::NoiseType>(NoiseType.GetValue()));
@@ -95,6 +121,8 @@ void AWorldLandscape::SetupNoise()
 
 void AWorldLandscape::GenerateTerrain()
 {
+	bCurrentlyGenerating = false;
+
 	TRACE_CPUPROFILER_EVENT_SCOPE(GenerateTerrain);
 
 	checkf(IsValid(DynamicMeshComponent), TEXT("Dynamic Mesh Component was bad"));
@@ -105,8 +133,8 @@ void AWorldLandscape::GenerateTerrain()
 
 	// EditMesh > just using notifymesh because more safe
 	DynamicMesh->EditMesh([&](UE::Geometry::FDynamicMesh3& Mesh) {
-		InitialMeshGeneration(Mesh);
-		PostGeneration(Mesh);
+		RequestGenerateMeshData(Mesh);
+		ApplyGeneratedMeshData(Mesh);
 
 		// Final validity checks
 		ensureMsgf(Mesh.CheckValidity(ValidityOptions, ValidityCheckFailMode), TEXT("Mesh was not valid"));
@@ -114,9 +142,11 @@ void AWorldLandscape::GenerateTerrain()
 	});
 }
 
-void AWorldLandscape::InitialMeshGeneration(UE::Geometry::FDynamicMesh3& Mesh)
+void AWorldLandscape::RequestGenerateMeshData(UE::Geometry::FDynamicMesh3& Mesh)
 {
-	const FVector LocalClientPawnLocation = LocalClientPawn->GetActorLocation();
+	// Won't generate in a non-game thing because dynamicmesh isn't initialized
+	if (GetWorld()->IsGameWorld()) { const FVector3d LocalClientPawnLocation = LocalClientPawn->GetActorLocation(); }
+	else { const FVector3d LocalClientPawnLocation = FVector3d(0, 0, 0); }
 	const int NumPointsPerLine = FMath::FloorToInt((RenderDistance * 2.0f) / Resolution) + 1;
 
 	TArray<int32> Verticies;
@@ -124,22 +154,25 @@ void AWorldLandscape::InitialMeshGeneration(UE::Geometry::FDynamicMesh3& Mesh)
 	if (ReserveCount > TNumericLimits<int32>::Max()) ReserveCount = TNumericLimits<int32>::Max();
 	Verticies.Reserve((int32)ReserveCount);
 
-	// create vertices in row-major order: x changes fastest (this makes it faster?)
+	// apply generated verticies
+	int32 Index = 0;
 	for (int IndexY = 0; IndexY < NumPointsPerLine; ++IndexY) {
 		float VertexY = -RenderDistance + IndexY * Resolution;
 
 		for (int IndexX = 0; IndexX < NumPointsPerLine; ++IndexX) {
 			float VertexX = -RenderDistance + IndexX * Resolution;
 
-			// get noise for height
-			float Height = Noise->GetNoise(VertexX + LocalClientPawnLocation.X / 50, VertexY + LocalClientPawnLocation.Y / 50) * HeightScale;
-
 			// create vertex and remember its index
-			int32 NewVertex = Mesh.AppendVertex(FVector3d(VertexX + LocalClientPawnLocation.X / 50, VertexY + LocalClientPawnLocation.Y / 50, Height));
+			int32 NewVertex = Mesh.AppendVertex(GeneratedVertexLocations[Index]);
+			UE_LOG(LogLandscape, Log, TEXT("Location: %s"), *GeneratedVertexLocations[0].ToString());
+			Index++;
 			check(Mesh.IsVertex(NewVertex));
 			Verticies.Add(NewVertex);
 		}
 	}
+
+	// Clear the array for it to be generated again
+	GeneratedVertexLocations.Empty();
 
 	// Create the triangles
 	for (int IndexY = 0; IndexY < NumPointsPerLine - 1; ++IndexY) {
@@ -159,9 +192,33 @@ void AWorldLandscape::InitialMeshGeneration(UE::Geometry::FDynamicMesh3& Mesh)
 	}
 }
 
-void AWorldLandscape::PostGeneration(UE::Geometry::FDynamicMesh3& Mesh)
+void AWorldLandscape::ApplyGeneratedMeshData(UE::Geometry::FDynamicMesh3& Mesh)
 {
 	
+}
+
+void AWorldLandscape::GenerateVertexLocations()
+{
+	const FVector LocalClientPawnLocation = LocalClientPawn->GetActorLocation();
+	const int NumPointsPerLine = FMath::FloorToInt((RenderDistance * 2.0f) / Resolution) + 1;
+
+	// create vertices in row-major order: x changes fastest (this makes it faster?)
+	for (int IndexY = 0; IndexY < NumPointsPerLine; ++IndexY) {
+		float VertexY = -RenderDistance + IndexY * Resolution;
+
+		for (int IndexX = 0; IndexX < NumPointsPerLine; ++IndexX) {
+			float VertexX = -RenderDistance + IndexX * Resolution;
+
+			// get noise for height
+			float Height = Noise->GetNoise(VertexX + LocalClientPawnLocation.X / 50, VertexY + LocalClientPawnLocation.Y / 50) * HeightScale;
+
+			// create vertex and remember its index
+			FVector3d NewVertex = FVector3d(VertexX + LocalClientPawnLocation.X / 50, VertexY + LocalClientPawnLocation.Y / 50, Height);
+			GeneratedVertexLocations.Add(NewVertex);
+		}
+	}
+
+	WorldGenerationRunnable->bGenerate = false;
 }
 
 UDynamicMeshPool* AWorldLandscape::GetComputeMeshPool()

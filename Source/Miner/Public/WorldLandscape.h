@@ -15,6 +15,7 @@ DECLARE_LOG_CATEGORY_EXTERN(LogLandscape, Log, All);
  */
 
 class FastNoiseLite;
+class FWorldGenerationRunnable;
 
 UCLASS(ConversionRoot, ComponentWrapperClass, ClassGroup = DynamicMesh, meta = (ChildCanTick), MinimalAPI)
 class AWorldLandscape : public AActor
@@ -58,6 +59,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = DynamicMeshActor)
 	void FreeAllComputeMeshes();
 
+	/** The function for the world generation thread to run, and give the generated points */
+	UFUNCTION(BlueprintCallable, Category = "Landscape Generation")
+	void GenerateVertexLocations();
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
@@ -67,8 +72,8 @@ protected:
 	void GenerateTerrain();
 
 	// Mesh generation steps
-	void InitialMeshGeneration(UE::Geometry::FDynamicMesh3& Mesh);
-	void PostGeneration(UE::Geometry::FDynamicMesh3& Mesh);
+	void RequestGenerateMeshData(UE::Geometry::FDynamicMesh3& Mesh);
+	void ApplyGeneratedMeshData(UE::Geometry::FDynamicMesh3& Mesh);
 
 	UPROPERTY(Category = DynamicMeshActor, VisibleAnywhere, BlueprintReadOnly, meta = (ExposeFunctionCategories = "Mesh,Rendering,Physics,Components|StaticMesh", AllowPrivateAccess = "true"))
 	TObjectPtr<class UDynamicMeshComponent> DynamicMeshComponent;
@@ -146,10 +151,16 @@ protected:
 
 	FDynamicMesh3::FValidityOptions ValidityOptions = { false, false };
 
-private:
-	UPROPERTY()
+	FWorldGenerationRunnable* WorldGenerationRunnable;
+
+	bool bCurrentlyGenerating = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Landscape Generation")
+	TArray<FVector> GeneratedVertexLocations;
+
+	UPROPERTY(BlueprintReadOnly, meta = (Tooltip = "The local pawn for this client. Does not need to be changed by blueprints because it is automatically set at beginplay in c++."))
 	APawn* LocalClientPawn;
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadWrite)
 	FVector LastPlayerLocation;
 };
