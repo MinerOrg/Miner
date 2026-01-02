@@ -72,8 +72,8 @@ protected:
 	void GenerateTerrain();
 
 	// Mesh generation steps
-	void RequestGenerateMeshData(UE::Geometry::FDynamicMesh3& Mesh);
 	void ApplyGeneratedMeshData(UE::Geometry::FDynamicMesh3& Mesh);
+	void PostGeneration(UE::Geometry::FDynamicMesh3& Mesh);
 
 	UPROPERTY(Category = DynamicMeshActor, VisibleAnywhere, BlueprintReadOnly, meta = (ExposeFunctionCategories = "Mesh,Rendering,Physics,Components|StaticMesh", AllowPrivateAccess = "true"))
 	TObjectPtr<class UDynamicMeshComponent> DynamicMeshComponent;

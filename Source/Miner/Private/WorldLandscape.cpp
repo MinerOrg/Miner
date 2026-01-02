@@ -133,8 +133,8 @@ void AWorldLandscape::GenerateTerrain()
 
 	// EditMesh > just using notifymesh because more safe
 	DynamicMesh->EditMesh([&](UE::Geometry::FDynamicMesh3& Mesh) {
-		RequestGenerateMeshData(Mesh);
 		ApplyGeneratedMeshData(Mesh);
+		PostGeneration(Mesh);
 
 		// Final validity checks
 		ensureMsgf(Mesh.CheckValidity(ValidityOptions, ValidityCheckFailMode), TEXT("Mesh was not valid"));
@@ -142,7 +142,7 @@ void AWorldLandscape::GenerateTerrain()
 	});
 }
 
-void AWorldLandscape::RequestGenerateMeshData(UE::Geometry::FDynamicMesh3& Mesh)
+void AWorldLandscape::ApplyGeneratedMeshData(UE::Geometry::FDynamicMesh3& Mesh)
 {
 	// Won't generate in a non-game thing because dynamicmesh isn't initialized
 	if (GetWorld()->IsGameWorld()) { const FVector3d LocalClientPawnLocation = LocalClientPawn->GetActorLocation(); }
@@ -192,13 +192,15 @@ void AWorldLandscape::RequestGenerateMeshData(UE::Geometry::FDynamicMesh3& Mesh)
 	}
 }
 
-void AWorldLandscape::ApplyGeneratedMeshData(UE::Geometry::FDynamicMesh3& Mesh)
+void AWorldLandscape::PostGeneration(UE::Geometry::FDynamicMesh3& Mesh)
 {
 	
 }
 
 void AWorldLandscape::GenerateVertexLocations()
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(GenerateVertexLocations);
+
 	const FVector LocalClientPawnLocation = LocalClientPawn->GetActorLocation();
 	const int NumPointsPerLine = FMath::FloorToInt((RenderDistance * 2.0f) / Resolution) + 1;
 
