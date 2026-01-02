@@ -155,6 +155,7 @@ void AWorldLandscape::RequestGenerateMeshData(UE::Geometry::FDynamicMesh3& Mesh)
 	Verticies.Reserve((int32)ReserveCount);
 
 	// apply generated verticies
+	int32 Index = 0;
 	for (int IndexY = 0; IndexY < NumPointsPerLine; ++IndexY) {
 		float VertexY = -RenderDistance + IndexY * Resolution;
 
@@ -162,9 +163,9 @@ void AWorldLandscape::RequestGenerateMeshData(UE::Geometry::FDynamicMesh3& Mesh)
 			float VertexX = -RenderDistance + IndexX * Resolution;
 
 			// create vertex and remember its index
-			int32 NewVertex = Mesh.AppendVertex(GeneratedVertexLocations[0]);
+			int32 NewVertex = Mesh.AppendVertex(GeneratedVertexLocations[Index]);
 			UE_LOG(LogLandscape, Log, TEXT("Location: %s"), *GeneratedVertexLocations[0].ToString());
-			GeneratedVertexLocations.RemoveAt(0);    // Remove the first index because it won't be needed + easy indexing. May be slow though
+			Index++;
 			check(Mesh.IsVertex(NewVertex));
 			Verticies.Add(NewVertex);
 		}
