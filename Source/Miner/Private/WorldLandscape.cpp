@@ -222,7 +222,9 @@ void AWorldLandscape::GenerateVertexLocations()
 	// signal the worker finished and schedule the mesh apply on the Game Thread
 	WorldGenerationRunnable->bGenerate = false;
 
-	// You can only broadcast delegates on the game thread, so convert it to the game thread (except it worked on everytime except when you exit? IDK I asked github copilot)
+	// You can only broadcast delegates on the game thread, so convert it to the game thread 
+	// Even though it worked on everytime except when you exit? IDK I asked github copilot. Maybe it was because the worldlandscape was being destroyed? 
+	// The crash said it was because chaos physics was running on another thread that wasn't the game thread.
 	TWeakObjectPtr<AWorldLandscape> WeakWorldLandscapeReference(this);
 	AsyncTask(ENamedThreads::GameThread, [WeakWorldLandscapeReference]() {
 		if (WeakWorldLandscapeReference.IsValid())
