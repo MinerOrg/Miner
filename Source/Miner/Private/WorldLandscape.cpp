@@ -8,6 +8,7 @@
 #include "FastNoiseLite.h"
 #include "WorldGameMode.h"
 #include "WorldGenerationRunnable.h"
+#include "Async/Async.h"
 
 DEFINE_LOG_CATEGORY(LogLandscape);
 
@@ -34,6 +35,8 @@ AWorldLandscape::AWorldLandscape()
 	LastPlayerLocation = FVector::ZeroVector;
 	LocalClientPawn = nullptr;
 	WorldGenerationRunnable = nullptr;
+
+	ApplyTerrainDataDelegate.AddUObject(this, &AWorldLandscape::GenerateTerrain);
 }
 
 void AWorldLandscape::BeginPlay()
@@ -60,7 +63,6 @@ void AWorldLandscape::BeginPlay()
 	GeneratedVertexLocations.Reserve((int32)ReserveCount);
 
 	GenerateVertexLocations();
-	GenerateTerrain();
 }
 
 void AWorldLandscape::Tick(float DeltaTime)
@@ -70,8 +72,6 @@ void AWorldLandscape::Tick(float DeltaTime)
 	checkf(IsValid(LocalClientPawn), TEXT("Client Pawn bad"));
 	FVector LocalClientPawnLocation = LocalClientPawn->GetActorLocation();
 
-	if (!WorldGenerationRunnable->bGenerate && bCurrentlyGenerating) { GenerateTerrain(); }
-
 	// If the player has moved out of bounds, make the mesh follow them. (No Z check for now) (make sure that this runs last because if it is generating it will return)
 	if (FMath::RoundToInt(LastPlayerLocation.X / ChunkDistance) * ChunkDistance != FMath::RoundToInt(LocalClientPawnLocation.X / ChunkDistance) * ChunkDistance || FMath::RoundToInt(LastPlayerLocation.Y / ChunkDistance) * ChunkDistance != FMath::RoundToInt(LocalClientPawnLocation.Y / ChunkDistance) * ChunkDistance /* || FMath::RoundToInt(LastPlayerLocation.Z / ChunkDistance) * ChunkDistance != LocalClientPawnLocation.Z */) {
 		if (WorldGenerationRunnable->bGenerate) { return; }
@@ -80,7 +80,6 @@ void AWorldLandscape::Tick(float DeltaTime)
 
 		// Request mesh data to be generated (apply the mesh later)
 		WorldGenerationRunnable->bGenerate = true;
-		bCurrentlyGenerating = true;
 	}
 }
 
@@ -170,7 +169,7 @@ void AWorldLandscape::ApplyGeneratedMeshData(UE::Geometry::FDynamicMesh3& Mesh)
 			Verticies.Add(NewVertex);
 		}
 	}
-
+	
 	// Clear the array for it to be generated again
 	GeneratedVertexLocations.Empty();
 
@@ -220,7 +219,17 @@ void AWorldLandscape::GenerateVertexLocations()
 		}
 	}
 
+	// signal the worker finished and schedule the mesh apply on the Game Thread
 	WorldGenerationRunnable->bGenerate = false;
+
+	// You can only broadcast delegates on the game thread, so convert it to the game thread (except it worked on everytime except when you exit? IDK I asked github copilot)
+	TWeakObjectPtr<AWorldLandscape> WeakWorldLandscapeReference(this);
+	AsyncTask(ENamedThreads::GameThread, [WeakWorldLandscapeReference]() {
+		if (WeakWorldLandscapeReference.IsValid())
+		{
+			WeakWorldLandscapeReference->ApplyTerrainDataDelegate.Broadcast();
+		}
+	});
 }
 
 UDynamicMeshPool* AWorldLandscape::GetComputeMeshPool()

@@ -10,6 +10,8 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogLandscape, Log, All);
 
+DECLARE_MULTICAST_DELEGATE(FTerrainDataGeneratedDelegate);
+
 /**
  * AWorldLandscape is an Actor that generates a dynamic landscape mesh based on a seed
  */
@@ -62,6 +64,8 @@ public:
 	/** The function for the world generation thread to run, and give the generated points */
 	UFUNCTION(BlueprintCallable, Category = "Landscape Generation")
 	void GenerateVertexLocations();
+
+	FTerrainDataGeneratedDelegate ApplyTerrainDataDelegate;
 
 protected:
 	virtual void BeginPlay() override;
