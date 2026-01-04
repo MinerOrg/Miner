@@ -29,6 +29,8 @@ public:
 	bool bGenerate = false;
 
 protected:
+	void GenerateVertexLocations();
+
 	TObjectPtr<AWorldLandscape> OwnerLandscape;
 	UWorld* CurrentWorld;
 	
