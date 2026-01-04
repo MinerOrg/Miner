@@ -12,6 +12,27 @@ DECLARE_LOG_CATEGORY_EXTERN(LogLandscape, Log, All);
 
 DECLARE_MULTICAST_DELEGATE(FTerrainDataGeneratedDelegate);
 
+USTRUCT(BlueprintType)
+struct FWorldGenerationData {
+	GENERATED_USTRUCT_BODY();
+
+public:
+	UPROPERTY(meta = (ToolTip = "How much distance to go until checking the noise again."))
+	float Resolution;
+
+	UPROPERTY(meta = (ToolTip = "Height Scale of the Landscape"))
+	float HeightScale;
+
+	UPROPERTY(meta = (ToolTip = "Chunk spacing/Distance to go until make chunk follow"))
+	float ChunkDistance;
+
+	UPROPERTY(meta = (ToolTip = "How far the chunk should go"))
+	float RenderDistance;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape|Materials", meta = (ToolTip = "Default Material"))
+	UMaterialInterface* DefaultLandscapeMaterial;
+};
+
 /**
  * AWorldLandscape is an Actor that generates a dynamic landscape mesh based on a seed
  */
@@ -61,9 +82,24 @@ public:
 	UFUNCTION(BlueprintCallable, Category = DynamicMeshActor)
 	void FreeAllComputeMeshes();
 
-	/** The function for the world generation thread to run, and give the generated points */
-	UFUNCTION(BlueprintCallable, Category = "Landscape Generation")
-	void GenerateVertexLocations();
+	// I had to make these variables public, so that landscape data could be generated
+	// in the worldgenerationrunnable
+
+	UPROPERTY(Transient)
+	TObjectPtr<UDynamicMesh> DynamicMesh;
+
+	TObjectPtr<FastNoiseLite> Noise;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape")
+	FWorldGenerationData LandscapeData{
+		1,    // Resolution
+		300.0f,    // Height Scale
+		1000.0f,    // Chunk Distance
+		100.0f    // Render Distance
+	};
+
+	UPROPERTY(BlueprintReadOnly, meta = (Tooltip = "The local pawn for this client. Does not need to be changed by blueprints because it is automatically set at beginplay in c++."))
+	APawn* LocalClientPawn;
 
 	FTerrainDataGeneratedDelegate ApplyTerrainDataDelegate;
 
@@ -75,36 +111,12 @@ protected:
 	void SetupNoise();
 	void GenerateTerrain();
 
-	// Mesh generation steps
-	void ApplyGeneratedMeshData(UE::Geometry::FDynamicMesh3& Mesh);
-	void PostGeneration(UE::Geometry::FDynamicMesh3& Mesh);
-
 	UPROPERTY(Category = DynamicMeshActor, VisibleAnywhere, BlueprintReadOnly, meta = (ExposeFunctionCategories = "Mesh,Rendering,Physics,Components|StaticMesh", AllowPrivateAccess = "true"))
 	TObjectPtr<class UDynamicMeshComponent> DynamicMeshComponent;
-
-	UPROPERTY(Transient)
-	TObjectPtr<UDynamicMesh> DynamicMesh;
 
 	/** The internal Mesh Pool, for use in DynamicMeshActor BPs. Use GetComputeMeshPool() to access this, as it will only be created on-demand if bEnableComputeMeshPool = true */
 	UPROPERTY(Transient)
 	TObjectPtr<UDynamicMeshPool> DynamicMeshPool;
-
-	TObjectPtr<FastNoiseLite> Noise;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "How much distance to go until checking the noise again."))
-	float Resolution = 1.0;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "Height Scale of the Landscape"))
-	float HeightScale = 300.0f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape|Materials", meta = (ToolTip = "Default Material"))
-	UMaterialInterface* DefaultLandscapeMaterial;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "Chunk spacing/Distance to go until make chunk follow"))
-	float ChunkDistance = 1000.0f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "How far the chunk should go"))
-	float RenderDistance = 100.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Noise")
 	int Seed = 1337;
@@ -161,9 +173,6 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Landscape Generation")
 	TArray<FVector> GeneratedVertexLocations;
-
-	UPROPERTY(BlueprintReadOnly, meta = (Tooltip = "The local pawn for this client. Does not need to be changed by blueprints because it is automatically set at beginplay in c++."))
-	APawn* LocalClientPawn;
 
 	UPROPERTY(BlueprintReadWrite)
 	FVector LastPlayerLocation;
