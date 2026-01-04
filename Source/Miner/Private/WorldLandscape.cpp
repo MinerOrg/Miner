@@ -122,8 +122,6 @@ void AWorldLandscape::SetupNoise()
 
 void AWorldLandscape::GenerateTerrain()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Generating Terrain on game thread"));
-
 	bCurrentlyGenerating = false;
 
 	TRACE_CPUPROFILER_EVENT_SCOPE(GenerateTerrain);
