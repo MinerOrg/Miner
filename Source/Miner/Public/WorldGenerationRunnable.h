@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "HAL/Runnable.h"
+#include "UDynamicMesh.h"
 
 class FSingleThreadRunnable;
 class AWorldLandscape;
@@ -28,6 +29,9 @@ public:
 
 	bool bGenerate = false;
 
+	UPROPERTY(Transient)
+	TObjectPtr<UDynamicMesh> DynamicMesh;
+
 protected:
 	void GenerateVertexLocations();
 
@@ -35,5 +39,6 @@ protected:
 	UWorld* CurrentWorld;
 	
 	FRunnableThread* Thread;
+
 	bool bRunThread = true;
 };

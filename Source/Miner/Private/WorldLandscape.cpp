@@ -129,10 +129,12 @@ void AWorldLandscape::GenerateTerrain()
 	checkf(IsValid(DynamicMeshComponent), TEXT("Dynamic Mesh Component was bad"));
 	checkf(IsValid(DynamicMesh), TEXT("Dynamic Mesh was bad"));
 	checkf(Noise, TEXT("Noise was bad"));
+
+	DynamicMesh->InitializeMesh();
 	
 	// EditMesh > just using notifymesh because more safe
 	DynamicMesh->EditMesh([&](UE::Geometry::FDynamicMesh3& Mesh) {
-		Mesh = *DynamicMesh->GetMeshPtr();
+		Mesh = *WorldGenerationRunnable->DynamicMesh->GetMeshPtr();
 
 		// Final validity checks
 		ensureMsgf(Mesh.CheckValidity(ValidityOptions, ValidityCheckFailMode), TEXT("Mesh was not valid"));
