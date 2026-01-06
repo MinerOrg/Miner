@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright Schuyler Zheng. All Rights Reserved.
 
 #include "BaseCharacter.h"
 #include "BaseCharacterAttributeSet.h"
@@ -46,11 +46,13 @@ void ABaseCharacter::BeginPlay()
 
 void ABaseCharacter::DoJumpStart()
 {
+	UE_LOG(LogBaseCharacter, Log, TEXT("Jump ability requested for character %s"), *DisplayName.ToString());
 	AbilitySystemComponent->AbilityLocalInputPressed(static_cast<int32>(EAbilitiesIndex::JumpAbility));
 }
 
 void ABaseCharacter::DoJumpEnd()
 {
+	UE_LOG(LogBaseCharacter, Log, TEXT("End jump ability requested for character %s"), *DisplayName.ToString());
 	AbilitySystemComponent->AbilityLocalInputReleased(static_cast<int32>(EAbilitiesIndex::JumpAbility));
 }
 
@@ -73,21 +75,25 @@ void ABaseCharacter::DoStopLeftClick()
 
 void ABaseCharacter::DoStartSprint()
 {
+	UE_LOG(LogBaseCharacter, Log, TEXT("Sprint ability requested for character %s"), *DisplayName.ToString());
 	AbilitySystemComponent->AbilityLocalInputPressed(static_cast<int32>(EAbilitiesIndex::SprintAbility));
 }
 
 void ABaseCharacter::DoEndSprint()
 {
+	UE_LOG(LogBaseCharacter, Log, TEXT("End sprint ability requested for character %s"), *DisplayName.ToString());
 	AbilitySystemComponent->AbilityLocalInputReleased(static_cast<int32>(EAbilitiesIndex::SprintAbility));
 }
 
 void ABaseCharacter::DoStartCrouch()
 {
+	UE_LOG(LogBaseCharacter, Log, TEXT("Crouch ability requested for character %s"), *DisplayName.ToString());
 	AbilitySystemComponent->AbilityLocalInputPressed(static_cast<int32>(EAbilitiesIndex::CrouchAbility));
 }
 
 void ABaseCharacter::DoEndCrouch()
 {
+	UE_LOG(LogBaseCharacter, Log, TEXT("End crouch ability requested for character %s"), *DisplayName.ToString());
 	AbilitySystemComponent->AbilityLocalInputReleased(static_cast<int32>(EAbilitiesIndex::CrouchAbility));
 }
 

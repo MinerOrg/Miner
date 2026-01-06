@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright Schuyler Zheng. All Rights Reserved.
 
 #pragma once
 
@@ -12,8 +12,6 @@
 class ABaseCharacter;
 class UAbilityTask_WaitAttributeChange;
 
-DECLARE_LOG_CATEGORY_EXTERN(LogSprintAbility, Log, All);
-
 /**
  * Sprint ability class
  */
@@ -22,6 +20,7 @@ class USprint : public UGameplayAbility
 {
 	GENERATED_BODY()
 
+public:
 	USprint();
 
 protected:	
@@ -29,7 +28,6 @@ protected:
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 	virtual void InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 
-	ABaseCharacter* Character;
 	UBaseCharacterAttributeSet* AttributeSet;
 
 	UPROPERTY(EditDefaultsOnly)
