@@ -45,6 +45,8 @@ void USprint::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 
 void USprint::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+
 	ABaseCharacter* Character = Cast<ABaseCharacter>(ActorInfo->AvatarActor);
 	UE_LOG(LogAbility, Log, TEXT("Sprint Ability end ability function successfully called for player %s"), *Character->GetDisplayName().ToString());
 

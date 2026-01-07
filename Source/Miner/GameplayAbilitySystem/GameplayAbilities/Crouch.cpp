@@ -7,7 +7,7 @@
 UCrouch::UCrouch()
 {
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
-	InstancingPolicy = EGameplayAbilityInstancingPolicy::NonInstanced;
+	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 }
 
 void UCrouch::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -21,7 +21,7 @@ void UCrouch::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 
 		ABaseCharacter* Character = CastChecked<ABaseCharacter>(ActorInfo->AvatarActor.Get());
 		UE_LOG(LogAbility, Log, TEXT("Crouch Ability activate ability function successfully called for player %s"), *Character->GetDisplayName().ToString());
-		Character->Jump();
+		Character->Crouch();
 	}
 }
 

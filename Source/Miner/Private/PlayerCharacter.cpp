@@ -15,17 +15,17 @@ APlayerCharacter::APlayerCharacter()
 
 void APlayerCharacter::BeginPlay()
 {
-
+	Super::BeginPlay();
 }
 
 void APlayerCharacter::Tick(float DeltaTime)
 {
-
+	Super::Tick(DeltaTime);
 }
 
 void APlayerCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-
+	Super::EndPlay(EndPlayReason);
 }
 
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
