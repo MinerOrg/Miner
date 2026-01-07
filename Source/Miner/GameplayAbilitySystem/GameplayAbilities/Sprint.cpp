@@ -1,61 +1,54 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright Schuyler Zheng. All Rights Reserved.
 
-#include "Sprint.h"
+#include "GameplayAbilitySystem/GameplayAbilities/Sprint.h"
 #include "BaseCharacter.h"
 #include "GameplayAbilitySystem/GameplayEffects/UseStamina.h"
 #include "BaseCharacterAttributeSet.h"
 #include "AbilitySystemComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Abilities/Tasks/AbilityTask_WaitAttributeChange.h"
-
-DEFINE_LOG_CATEGORY(LogSprintAbility);
+#include "GameplayAbilitySystem/LogAbility.h"
 
 USprint::USprint()
 {
-	
+	WaitStaminaTask = nullptr;
+	AttributeSet = nullptr;
 }
 
 void USprint::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
-	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-
-	// Make sure ability is able to start
-	if (!HasAuthorityOrPredictionKey(ActorInfo, &ActivationInfo))
+	if (HasAuthorityOrPredictionKey(ActorInfo, &ActivationInfo))
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Sprint ability could not be commited"));
-		UE_LOG(LogSprintAbility, Warning, TEXT("Sprint ability could not be activated because it doesn't have authority or prediction key"));
-		return;
+		if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
+		{
+			return;
+		}
+
+		ABaseCharacter* Character = Cast<ABaseCharacter>(ActorInfo->AvatarActor);
+		check(IsValid(Character));
+		UE_LOG(LogAbility, Log, TEXT("Sprint Ability activate ability function successfully called for player %s"), *Character->GetDisplayName().ToString());
+		AttributeSet = GetAttributeSet(ActorInfo);
+
+		// Start draining stamina
+		ApplyStaminaEffect(Handle, ActorInfo, ActivationInfo);
+
+		// Set sprint parameters
+		Character->GetCharacterMovement()->MaxWalkSpeed = Character->DefaultSprintSpeed;
+		Character->GetCharacterMovement()->JumpZVelocity = Character->DefaultSprintJumpHeight;
+
+		// Cancel if no more stamina
+		WaitStaminaTask = UAbilityTask_WaitAttributeChange::WaitForAttributeChangeWithComparison(this, AttributeSet->GetStaminaAttribute(), FGameplayTag(), FGameplayTag(), EWaitAttributeChangeComparison::LessThanOrEqualTo, 0.0f, false, nullptr);
+		WaitStaminaTask->OnChange.AddDynamic(this, &USprint::OnStaminaChanged);
+		WaitStaminaTask->ReadyForActivation();
 	}
-	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Sprint ability could not be commited"));
-		UE_LOG(LogSprintAbility, Log, TEXT("Sprint ability could not be commited"));
-		return;
-	}
-
-	// Get the character from the ActorInfo and make sure it is valid
-	Character = Cast<ABaseCharacter>(ActorInfo->AvatarActor.Get());
-	check(IsValid(Character));
-	// Get the attribute set from the AbilitySystemComponent
-	AttributeSet = GetAttributeSet(ActorInfo);
-
-	// Call the ApplyStaminaEffect function to apply the UseStamina gameplay effect
-	ApplyStaminaEffect(Handle, ActorInfo, ActivationInfo);
-
-	// Set sprint parameters
-	Character->GetCharacterMovement()->MaxWalkSpeed = Character->DefaultSprintSpeed;
-	Character->GetCharacterMovement()->JumpZVelocity = Character->DefaultSprintJumpHeight;
-	
-	// Cancel if no more stamina
-	WaitStaminaTask = UAbilityTask_WaitAttributeChange::WaitForAttributeChangeWithComparison(this, AttributeSet->GetStaminaAttribute(), FGameplayTag(), FGameplayTag(), EWaitAttributeChangeComparison::LessThanOrEqualTo, 0.0f, false, nullptr);
-	WaitStaminaTask->OnChange.AddDynamic(this, &USprint::OnStaminaChanged);
-	WaitStaminaTask->ReadyForActivation();
 }
 
 void USprint::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
-	// Make sure stuff is valid
-	check(IsValid(Character));
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+
+	ABaseCharacter* Character = Cast<ABaseCharacter>(ActorInfo->AvatarActor);
+	UE_LOG(LogAbility, Log, TEXT("Sprint Ability end ability function successfully called for player %s"), *Character->GetDisplayName().ToString());
 
 	// Reset player max speed to default
 	Character->GetCharacterMovement()->MaxWalkSpeed = Character->DefaultWalkSpeed;
@@ -70,11 +63,6 @@ void USprint::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGamepla
 	// Clean up wait stamina task
 	WaitStaminaTask->EndTask();
 	WaitStaminaTask = nullptr;
-
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Sprint ended"));
-	UE_LOG(LogTemp, Log, TEXT("Sprint ended"));
-
-	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);	// Do everything before, so the object doesn't get deleted before we have to still do stuff
 }
 
 void USprint::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
@@ -86,8 +74,7 @@ void USprint::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGame
 
 void USprint::OnStaminaChanged()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Stamina changed"));
-	UE_LOG(LogTemp, Log, TEXT("Stamina changed"));
+	UE_LOG(LogAbility, Log, TEXT("Stamina changed"));
 
 	check(IsValid(AttributeSet));
 	const float NewValue = AttributeSet->GetStamina();
@@ -139,7 +126,7 @@ void USprint::ApplyStaminaEffect(const FGameplayAbilitySpecHandle Handle, const 
 	float ValueByTag = StaminaEffectSpecHandle.Data->GetSetByCallerMagnitude(StaminaUseGameplayEffectTag, false);
 	float ValueByName = StaminaEffectSpecHandle.Data->GetSetByCallerMagnitude(FName("AttributeChange.UseStamina"), false);
 
-	UE_LOG(LogSprintAbility, Warning, TEXT("Debug: ValueByTag=%f, ValueByName=%f"), ValueByTag, ValueByName);
+	UE_LOG(LogAbility, Warning, TEXT("Debug: ValueByTag=%f, ValueByName=%f"), ValueByTag, ValueByName);
 
 	// Apply effect to character
 	check(StaminaEffectSpecHandle.IsValid());

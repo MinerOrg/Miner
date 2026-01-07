@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright Schuyler Zheng. All Rights Reserved.
 
 #pragma once
 
@@ -118,6 +118,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Defaults")
 	float DefaultCrouchHeight = 40.0f;
 
+	const FText GetDisplayName() const { return DisplayName; };
+
 protected:
 	/** Input actions */
 
@@ -169,6 +171,39 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Items")
 	FName RightHandSocket = FName("HandGrip_R");
+
+	/**
+	* Names
+	*/
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Display")
+	FText DisplayName = FText::FromString("DefaultCharacterName");
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Display")
+	TArray<FText> Adjectives = {
+		FText::FromString("Black"),
+		FText::FromString("Yellow"),
+		FText::FromString("Red"),
+		FText::FromString("Purple"),
+		FText::FromString("Rainbow"),
+		FText::FromString("Strange"),
+		FText::FromString("Goofy"),
+		FText::FromString("Stupid"),
+		FText::FromString("Massive"),
+	};
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Display")
+	TArray<FText> Nouns = {
+		FText::FromString("Monkey"),
+		FText::FromString("Man"),
+		FText::FromString("Gorilla"),
+		FText::FromString("Furry"),
+		FText::FromString("TungTungTungSahur"),
+		FText::FromString("Oschrich"),
+		FText::FromString("Crow"),
+		FText::FromString("TralaleloTralala"),
+		FText::FromString("PPKiwi"),
+	};
 
 	/**
 	* Overrides

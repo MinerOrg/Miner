@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright Schuyler Zheng. All Rights Reserved.
 
 #include "PlayerCharacter.h"
 #include "AbilitySystemComponent.h"
@@ -7,7 +7,25 @@
 
 APlayerCharacter::APlayerCharacter()
 {
-	
+	const FText& Adj = Adjectives[FMath::RandRange(0, Adjectives.Num() - 1)];
+	const FText& Noun = Nouns[FMath::RandRange(0, Nouns.Num() - 1)];
+
+	DisplayName = FText::FromString(FString::Printf(TEXT("%s%s"), *Adj.ToString(), *Noun.ToString()));
+}
+
+void APlayerCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+}
+
+void APlayerCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+}
+
+void APlayerCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
 }
 
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)

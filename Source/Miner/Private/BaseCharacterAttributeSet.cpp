@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright Schuyler Zheng. All Rights Reserved.
 
 #include "BaseCharacterAttributeSet.h"
 #include "GameplayEffectExtension.h"
