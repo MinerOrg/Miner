@@ -28,8 +28,6 @@ AWorldLandscape::AWorldLandscape()
 	
 	DynamicMeshComponent->SetEnableGravity(false);
 
-	DynamicMeshComponent->SetMaterial(0, LandscapeData.DefaultLandscapeMaterial);
-
 	SetRootComponent(DynamicMeshComponent);
 
 	LastPlayerLocation = FVector::ZeroVector;
@@ -51,6 +49,7 @@ void AWorldLandscape::BeginPlay()
 
 	DynamicMesh = AllocateComputeMesh();
 	DynamicMeshComponent->SetDynamicMesh(DynamicMesh);
+	DynamicMeshComponent->SetMaterial(0, LandscapeData.LandscapeMaterials.GrassMaterial);
 
 	// Create the thread that generates the vertex locations
 	WorldGenerationRunnable = new FWorldGenerationRunnable(this, GetWorld());
@@ -131,6 +130,7 @@ void AWorldLandscape::GenerateTerrain()
 	checkf(Noise, TEXT("Noise was bad"));
 
 	DynamicMesh->InitializeMesh();
+	DynamicMeshComponent->SetMaterial(0, LandscapeData.LandscapeMaterials.GrassMaterial);
 	
 	// EditMesh > just using notifymesh because more safe
 	DynamicMesh->EditMesh([&](UE::Geometry::FDynamicMesh3& Mesh) {
@@ -140,6 +140,8 @@ void AWorldLandscape::GenerateTerrain()
 		ensureMsgf(Mesh.CheckValidity(ValidityOptions, ValidityCheckFailMode), TEXT("Mesh was not valid"));
 		ensureMsgf(Mesh.IsCompact(), TEXT("Mesh had gaps (was not compact)"));
 	});
+
+	DynamicMeshComponent->SetMaterial(0, LandscapeData.LandscapeMaterials.GrassMaterial);
 }
 
 UDynamicMeshPool* AWorldLandscape::GetComputeMeshPool()

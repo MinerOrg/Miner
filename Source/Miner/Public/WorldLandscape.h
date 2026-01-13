@@ -13,24 +13,33 @@ DECLARE_LOG_CATEGORY_EXTERN(LogLandscape, Log, All);
 DECLARE_MULTICAST_DELEGATE(FTerrainDataGeneratedDelegate);
 
 USTRUCT(BlueprintType)
+struct FTerrainMaterials {
+	GENERATED_USTRUCT_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "Grass Material"))
+	UMaterialInterface* GrassMaterial;
+};
+
+USTRUCT(BlueprintType)
 struct FWorldGenerationData {
 	GENERATED_USTRUCT_BODY();
 
 public:
-	UPROPERTY(meta = (ToolTip = "How much distance to go until checking the noise again."))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "How much distance to go until checking the noise again."))
 	float Resolution;
 
-	UPROPERTY(meta = (ToolTip = "Height Scale of the Landscape"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "Height Scale of the Landscape"))
 	float HeightScale;
 
-	UPROPERTY(meta = (ToolTip = "Chunk spacing/Distance to go until make chunk follow"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "Chunk spacing/Distance to go until make chunk follow"))
 	float ChunkDistance;
 
-	UPROPERTY(meta = (ToolTip = "How far the chunk should go"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "How far the chunk should go"))
 	float RenderDistance;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape|Materials", meta = (ToolTip = "Default Material"))
-	UMaterialInterface* DefaultLandscapeMaterial;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "Default Material"))
+	FTerrainMaterials LandscapeMaterials;
 };
 
 /**
