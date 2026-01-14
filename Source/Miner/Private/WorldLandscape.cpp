@@ -64,6 +64,7 @@ void AWorldLandscape::BeginPlay()
 
 	// Generate the mesh (last step)
 	WorldGenerationRunnable->bGenerate = true;
+	while (WorldGenerationRunnable->bGenerate) { FPlatformProcess::Sleep(0.1f); } // Wait for it to finish
 }
 
 void AWorldLandscape::Tick(float DeltaTime)
@@ -121,8 +122,6 @@ void AWorldLandscape::SetupNoise()
 
 void AWorldLandscape::GenerateTerrain()
 {
-	bCurrentlyGenerating = false;
-
 	TRACE_CPUPROFILER_EVENT_SCOPE(GenerateTerrain);
 
 	checkf(IsValid(DynamicMeshComponent), TEXT("Dynamic Mesh Component was bad"));

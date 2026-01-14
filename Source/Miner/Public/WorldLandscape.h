@@ -178,8 +178,6 @@ protected:
 
 	FWorldGenerationRunnable* WorldGenerationRunnable;
 
-	bool bCurrentlyGenerating = false;
-
 	UPROPERTY(BlueprintReadOnly, Category = "Landscape Generation")
 	TArray<FVector> GeneratedVertexLocations;
 
