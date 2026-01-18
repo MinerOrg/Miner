@@ -60,3 +60,52 @@ enum FastNoiseLiteTypes_DomainWarpType
     DomainWarpType_OpenSimplex2Reduced,
     DomainWarpType_BasicGrid
 };
+
+USTRUCT(BlueprintType)
+struct FNoiseSettings
+{
+	GENERATED_USTRUCT_BODY()
+
+public:
+	UPROPERTY(EditAnywhere)
+	float Frequency = 0.03f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TEnumAsByte<FastNoiseLiteTypes_NoiseType> NoiseType = NoiseType_Perlin;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TEnumAsByte<FastNoiseLiteTypes_RotationType3D> RotationType3D = RotationType3D_None;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TEnumAsByte<FastNoiseLiteTypes_FractalType> FractalType = FractalType_FBm;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	int FractalOctaves = 3;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float FractalLacunarity = 2.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float FractalGain = 0.5f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float FractalWeightedStrength = 0.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float FractalPingPongStrength = 2.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TEnumAsByte<FastNoiseLiteTypes_CellularDistanceFunction> CellularDistanceFunction = CellularDistanceFunction_EuclideanSq;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TEnumAsByte<FastNoiseLiteTypes_CellularReturnType> CellularReturnType = CellularReturnType_Distance;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float CellularJitter = 1.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TEnumAsByte<FastNoiseLiteTypes_DomainWarpType> DomainWarpType = DomainWarpType_OpenSimplex2;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float DomainWarpAmp = 1.0f;
+};
