@@ -127,11 +127,10 @@ void AWorldLandscape::GenerateTerrain()
 	DynamicMeshComponent->SetMaterial(0, LandscapeData.LandscapeMaterials.GrassMaterial);
 }
 
-void AWorldLandscape::SetNoiseParameters(TObjectPtr<FastNoiseLite>& NoiseObject, const FNoiseSettings& NoiseSettings)
+void AWorldLandscape::SetNoiseParameters(FastNoiseLite*& NoiseObject, const FNoiseSettings& NoiseSettings)
 {
-	NoiseObject = new FastNoiseLite();
+	NoiseObject = new FastNoiseLite(LandscapeData.Seed);
 
-	NoiseObject->SetSeed(LandscapeData.Seed);
 	NoiseObject->SetFrequency(NoiseSettings.Frequency);
 	NoiseObject->SetNoiseType(static_cast<FastNoiseLite::NoiseType>(NoiseSettings.NoiseType.GetValue()));
 	NoiseObject->SetRotationType3D(static_cast<FastNoiseLite::RotationType3D>(NoiseSettings.RotationType3D.GetValue()));

@@ -14,7 +14,7 @@ DECLARE_MULTICAST_DELEGATE(FTerrainDataGeneratedDelegate);
 
 USTRUCT(BlueprintType)
 struct FTerrainMaterials {
-	GENERATED_USTRUCT_BODY()
+	GENERATED_BODY()
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "Grass Material"))
@@ -23,7 +23,7 @@ public:
 
 USTRUCT(BlueprintType)
 struct FWorldGenerationData {
-	GENERATED_USTRUCT_BODY();
+	GENERATED_BODY();
 
 public:
 	UPROPERTY(EditAnywhere, meta = (ToolTip = "The number that controls all randomness"))
@@ -100,9 +100,9 @@ public:
 	UPROPERTY(Transient)
 	TObjectPtr<UDynamicMesh> DynamicMesh;
 
-	TObjectPtr<FastNoiseLite> BasicLandNoise;
+	FastNoiseLite* BasicLandNoise;
 
-	TObjectPtr<FastNoiseLite> PlateTectonicsNoise;
+	FastNoiseLite* PlateTectonicsNoise;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape")
 	FWorldGenerationData LandscapeData{
@@ -126,7 +126,7 @@ protected:
 	void SetupNoise();
 	void GenerateTerrain();
 
-	void SetNoiseParameters(TObjectPtr<FastNoiseLite>& NoiseObject, const FNoiseSettings& NoiseSettings);
+	void SetNoiseParameters(FastNoiseLite*& NoiseObject, const FNoiseSettings& NoiseSettings);
 
 	UPROPERTY(Category = DynamicMeshActor, VisibleAnywhere, BlueprintReadOnly, meta = (ExposeFunctionCategories = "Mesh,Rendering,Physics,Components|StaticMesh", AllowPrivateAccess = "true"))
 	TObjectPtr<class UDynamicMeshComponent> DynamicMeshComponent;

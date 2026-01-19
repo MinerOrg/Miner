@@ -1,6 +1,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "FastNoiseLite.h"
+#include "FastNoiseLiteTypes.generated.h"
 
 UENUM(BlueprintType)
 enum FastNoiseLiteTypes_NoiseType
@@ -64,7 +66,7 @@ enum FastNoiseLiteTypes_DomainWarpType
 USTRUCT(BlueprintType)
 struct FNoiseSettings
 {
-	GENERATED_USTRUCT_BODY()
+	GENERATED_BODY()
 
 public:
 	UPROPERTY(EditAnywhere)
