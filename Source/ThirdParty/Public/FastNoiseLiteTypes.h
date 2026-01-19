@@ -70,44 +70,44 @@ struct FNoiseSettings
 
 public:
 	UPROPERTY(EditAnywhere)
-	float Frequency = 0.03f;
+	float Frequency;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TEnumAsByte<FastNoiseLiteTypes_NoiseType> NoiseType = NoiseType_Perlin;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TEnumAsByte<FastNoiseLiteTypes_NoiseType> NoiseType;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TEnumAsByte<FastNoiseLiteTypes_RotationType3D> RotationType3D = RotationType3D_None;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TEnumAsByte<FastNoiseLiteTypes_RotationType3D> RotationType3D;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TEnumAsByte<FastNoiseLiteTypes_FractalType> FractalType = FractalType_FBm;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TEnumAsByte<FastNoiseLiteTypes_FractalType> FractalType;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	int FractalOctaves = 3;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int FractalOctaves;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	float FractalLacunarity = 2.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float FractalLacunarity;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	float FractalGain = 0.5f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float FractalGain;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	float FractalWeightedStrength = 0.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float FractalWeightedStrength;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	float FractalPingPongStrength = 2.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float FractalPingPongStrength;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TEnumAsByte<FastNoiseLiteTypes_CellularDistanceFunction> CellularDistanceFunction = CellularDistanceFunction_EuclideanSq;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TEnumAsByte<FastNoiseLiteTypes_CellularDistanceFunction> CellularDistanceFunction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TEnumAsByte<FastNoiseLiteTypes_CellularReturnType> CellularReturnType = CellularReturnType_Distance;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TEnumAsByte<FastNoiseLiteTypes_CellularReturnType> CellularReturnType;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	float CellularJitter = 1.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float CellularJitter;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TEnumAsByte<FastNoiseLiteTypes_DomainWarpType> DomainWarpType = DomainWarpType_OpenSimplex2;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TEnumAsByte<FastNoiseLiteTypes_DomainWarpType> DomainWarpType;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	float DomainWarpAmp = 1.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float DomainWarpAmp;
 };

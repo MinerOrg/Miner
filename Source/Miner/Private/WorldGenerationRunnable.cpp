@@ -84,7 +84,7 @@ void FWorldGenerationRunnable::GenerateVertexLocations()
 			float VertexX = -OwnerLandscape->LandscapeData.RenderDistance + IndexX * OwnerLandscape->LandscapeData.Resolution;
 
 			// get noise for height
-			float Height = OwnerLandscape->BasicLandNoise->GetNoise(VertexX + LocalClientPawnLocation.X / 50, VertexY + LocalClientPawnLocation.Y / 50) * OwnerLandscape->LandscapeData.HeightScale;
+			float Height = OwnerLandscape->BasicLandNoise.GetNoise(VertexX + LocalClientPawnLocation.X / 50, VertexY + LocalClientPawnLocation.Y / 50) * OwnerLandscape->LandscapeData.HeightScale;
 
 			// create vertex and remember its index (use local mesh)
 			int32 NewVertex = (int32)DynamicMesh->GetMeshPtr()->AppendVertex(FVector3d(VertexX + LocalClientPawnLocation.X / 50, VertexY + LocalClientPawnLocation.Y / 50, Height));

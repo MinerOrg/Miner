@@ -100,17 +100,17 @@ public:
 	UPROPERTY(Transient)
 	TObjectPtr<UDynamicMesh> DynamicMesh;
 
-	FastNoiseLite* BasicLandNoise;
+	FastNoiseLite BasicLandNoise;
 
-	FastNoiseLite* PlateTectonicsNoise;
+	FastNoiseLite PlateTectonicsNoise;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape")
 	FWorldGenerationData LandscapeData{
-		1337,    // Seed
-		1,    // Resolution
-		300.0f,    // Height Scale
-		1000.0f,    // Chunk Distance
-		100.0f    // Render Distance
+		1337,											// Seed
+		1,												// Resolution
+		300.0f,											// Height Scale
+		1000.0f,										// Chunk Distance
+		100.0f											// Render Distance
 	};
 
 	UPROPERTY(BlueprintReadOnly, meta = (Tooltip = "The local pawn for this client. Does not need to be changed by blueprints because it is automatically set at beginplay in c++."))
@@ -126,7 +126,7 @@ protected:
 	void SetupNoise();
 	void GenerateTerrain();
 
-	void SetNoiseParameters(FastNoiseLite*& NoiseObject, const FNoiseSettings& NoiseSettings);
+	void SetNoiseParameters(FastNoiseLite& NoiseObject, const FNoiseSettings& NoiseSettings);
 
 	UPROPERTY(Category = DynamicMeshActor, VisibleAnywhere, BlueprintReadOnly, meta = (ExposeFunctionCategories = "Mesh,Rendering,Physics,Components|StaticMesh", AllowPrivateAccess = "true"))
 	TObjectPtr<class UDynamicMeshComponent> DynamicMeshComponent;
@@ -136,10 +136,40 @@ protected:
 	TObjectPtr<UDynamicMeshPool> DynamicMeshPool;
 
 	UPROPERTY(EditAnywhere, Category = "Noise")
-	FNoiseSettings BasicLandNoiseSettings;
+	FNoiseSettings BasicLandNoiseSettings {
+		0.1f,											// Frequency
+		NoiseType_Perlin, 								// Noise Type
+		RotationType3D_None,							// Rotation Type 3D
+		FractalType_FBm,								// Fractal Type
+		3,												// Fractal Octaves
+		2.0f,											// Fractal Lacunarity
+		0.5f,											// Fractal Gain
+		0.0f,											// Fractal Weighted Strength
+		2.0f,											// Fractal Ping Pong Strength
+		CellularDistanceFunction_EuclideanSq,			// Cellular Distance Function
+		CellularReturnType_Distance,					// Cellular Return Type
+		1.0f,											// Cellular Jitter
+		DomainWarpType_OpenSimplex2,					// Domain Warp Type
+		-4.5f											// Domain Warp Amp
+	};
 
 	UPROPERTY(EditAnywhere, Category = "Noise")
-	FNoiseSettings PlateTectonicsNoiseSettings;
+	FNoiseSettings PlateTectonicsNoiseSettings{
+		0.01f,											// Frequency
+		NoiseType_Perlin, 								// Noise Type
+		RotationType3D_None,							// Rotation Type 3D
+		FractalType_FBm,								// Fractal Type
+		3,												// Fractal Octaves
+		2.0f,											// Fractal Lacunarity
+		0.5f,											// Fractal Gain
+		0.0f,											// Fractal Weighted Strength
+		2.0f,											// Fractal Ping Pong Strength
+		CellularDistanceFunction_EuclideanSq,			// Cellular Distance Function
+		CellularReturnType_Distance,					// Cellular Return Type
+		1.0f,											// Cellular Jitter
+		DomainWarpType_OpenSimplex2,					// Domain Warp Type
+		-4.5f											// Domain Warp Amp
+	};
 
 	UE::Geometry::EValidityCheckFailMode ValidityCheckFailMode = UE::Geometry::EValidityCheckFailMode::Ensure;
 

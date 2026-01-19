@@ -110,7 +110,6 @@ void AWorldLandscape::GenerateTerrain()
 
 	check(IsValid(DynamicMeshComponent));
 	check(IsValid(DynamicMesh));
-	check(BasicLandNoise);
 
 	DynamicMesh->InitializeMesh();
 	DynamicMeshComponent->SetMaterial(0, LandscapeData.LandscapeMaterials.GrassMaterial);
@@ -127,24 +126,24 @@ void AWorldLandscape::GenerateTerrain()
 	DynamicMeshComponent->SetMaterial(0, LandscapeData.LandscapeMaterials.GrassMaterial);
 }
 
-void AWorldLandscape::SetNoiseParameters(FastNoiseLite*& NoiseObject, const FNoiseSettings& NoiseSettings)
+void AWorldLandscape::SetNoiseParameters(FastNoiseLite& NoiseObject, const FNoiseSettings& NoiseSettings)
 {
-	NoiseObject = new FastNoiseLite(LandscapeData.Seed);
+	NoiseObject = FastNoiseLite(LandscapeData.Seed);
 
-	NoiseObject->SetFrequency(NoiseSettings.Frequency);
-	NoiseObject->SetNoiseType(static_cast<FastNoiseLite::NoiseType>(NoiseSettings.NoiseType.GetValue()));
-	NoiseObject->SetRotationType3D(static_cast<FastNoiseLite::RotationType3D>(NoiseSettings.RotationType3D.GetValue()));
-	NoiseObject->SetFractalType(static_cast<FastNoiseLite::FractalType>(NoiseSettings.FractalType.GetValue()));
-	NoiseObject->SetFractalOctaves(NoiseSettings.FractalOctaves);
-	NoiseObject->SetFractalLacunarity(NoiseSettings.FractalLacunarity);
-	NoiseObject->SetFractalGain(NoiseSettings.FractalGain);
-	NoiseObject->SetFractalWeightedStrength(NoiseSettings.FractalWeightedStrength);
-	NoiseObject->SetFractalPingPongStrength(NoiseSettings.FractalPingPongStrength);
-	NoiseObject->SetCellularDistanceFunction(static_cast<FastNoiseLite::CellularDistanceFunction>(NoiseSettings.CellularDistanceFunction.GetValue()));
-	NoiseObject->SetCellularReturnType(static_cast<FastNoiseLite::CellularReturnType>(NoiseSettings.CellularReturnType.GetValue()));
-	NoiseObject->SetCellularJitter(NoiseSettings.CellularJitter);
-	NoiseObject->SetDomainWarpType(static_cast<FastNoiseLite::DomainWarpType>(NoiseSettings.DomainWarpType.GetValue()));
-	NoiseObject->SetDomainWarpAmp(NoiseSettings.DomainWarpAmp);
+	NoiseObject.SetFrequency(NoiseSettings.Frequency);
+	NoiseObject.SetNoiseType(static_cast<FastNoiseLite::NoiseType>(NoiseSettings.NoiseType.GetValue()));
+	NoiseObject.SetRotationType3D(static_cast<FastNoiseLite::RotationType3D>(NoiseSettings.RotationType3D.GetValue()));
+	NoiseObject.SetFractalType(static_cast<FastNoiseLite::FractalType>(NoiseSettings.FractalType.GetValue()));
+	NoiseObject.SetFractalOctaves(NoiseSettings.FractalOctaves);
+	NoiseObject.SetFractalLacunarity(NoiseSettings.FractalLacunarity);
+	NoiseObject.SetFractalGain(NoiseSettings.FractalGain);
+	NoiseObject.SetFractalWeightedStrength(NoiseSettings.FractalWeightedStrength);
+	NoiseObject.SetFractalPingPongStrength(NoiseSettings.FractalPingPongStrength);
+	NoiseObject.SetCellularDistanceFunction(static_cast<FastNoiseLite::CellularDistanceFunction>(NoiseSettings.CellularDistanceFunction.GetValue()));
+	NoiseObject.SetCellularReturnType(static_cast<FastNoiseLite::CellularReturnType>(NoiseSettings.CellularReturnType.GetValue()));
+	NoiseObject.SetCellularJitter(NoiseSettings.CellularJitter);
+	NoiseObject.SetDomainWarpType(static_cast<FastNoiseLite::DomainWarpType>(NoiseSettings.DomainWarpType.GetValue()));
+	NoiseObject.SetDomainWarpAmp(NoiseSettings.DomainWarpAmp);
 }
 
 UDynamicMeshPool* AWorldLandscape::GetComputeMeshPool()
