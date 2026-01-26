@@ -30,16 +30,16 @@ public:
 	int Seed;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "How much distance to go until checking the noise again."))
-	float Resolution;
+	double Resolution;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "Height Scale of the Landscape"))
-	float HeightScale;
+	double HeightScale;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "Chunk spacing/Distance to go until make chunk follow"))
-	float ChunkDistance;
+	double ChunkDistance;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "How far the chunk should go"))
-	float RenderDistance;
+	double RenderDistance;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "Default Material"))
 	FTerrainMaterials LandscapeMaterials;

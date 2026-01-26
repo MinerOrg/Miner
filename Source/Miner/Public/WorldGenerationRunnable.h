@@ -33,12 +33,22 @@ public:
 	TObjectPtr<UDynamicMesh> DynamicMesh;
 
 protected:
-	void GenerateVertexLocations();
+	void GenerateDynamicMesh();
+
+	void GenerateBasicLand();
+	void ApplyPlateTectonics();
+	void FinalizeLandMesh();
+
+	FRunnableThread* Thread;
+	bool bRunThread = true;
 
 	TObjectPtr<AWorldLandscape> OwnerLandscape;
 	UWorld* CurrentWorld;
-	
-	FRunnableThread* Thread;
 
-	bool bRunThread = true;
+	TArray<int32> Verticies;
+	TArray<FVector> VertexLocations;
+
+	double LastRenderDistance;
+	FVector3d LocalClientPawnLocation;
+	int64 NumPointsPerLine;
 };
