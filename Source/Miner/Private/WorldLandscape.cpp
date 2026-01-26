@@ -112,7 +112,6 @@ void AWorldLandscape::GenerateTerrain()
 	check(IsValid(DynamicMesh));
 
 	DynamicMesh->InitializeMesh();
-	DynamicMeshComponent->SetMaterial(0, LandscapeData.LandscapeMaterials.GrassMaterial);
 	
 	// EditMesh > just using notifymesh because more safe
 	DynamicMesh->EditMesh([&](UE::Geometry::FDynamicMesh3& Mesh) {
@@ -122,8 +121,6 @@ void AWorldLandscape::GenerateTerrain()
 		ensure(Mesh.CheckValidity(ValidityOptions, ValidityCheckFailMode));
 		ensure(Mesh.IsCompact());
 	});
-
-	DynamicMeshComponent->SetMaterial(0, LandscapeData.LandscapeMaterials.GrassMaterial);
 }
 
 void AWorldLandscape::SetNoiseParameters(FastNoiseLite& NoiseObject, const FNoiseSettings& NoiseSettings)

@@ -77,13 +77,15 @@ void FWorldGenerationRunnable::GenerateDynamicMesh()
 	if (OwnerLandscape->LandscapeData.RenderDistance != LastRenderDistance) {
 		NumPointsPerLine = FMath::FloorToInt((OwnerLandscape->LandscapeData.RenderDistance * 2.0f) / OwnerLandscape->LandscapeData.Resolution) + 1;
 		int64 ReserveCount = NumPointsPerLine ^ 2;
-		if (ReserveCount > TNumericLimits<int32>::Max()) ReserveCount = TNumericLimits<int32>::Max();
+		if (NumPointsPerLine > TNumericLimits<int32>::Max()) ReserveCount = TNumericLimits<int32>::Max();
 		Verticies.Reserve((int32)ReserveCount);
+		VertexHeights.Reserve((int32)ReserveCount);
 		LastRenderDistance = OwnerLandscape->LandscapeData.RenderDistance;
 	}
 
-	GenerateBasicLand();
+	GenerateBasicHeights();
 	ApplyPlateTectonics();
+	FinalizeLandMesh();
 
 	// signal the worker finished + make sure it doesn run again until requested
 	bGenerate = false;
@@ -98,42 +100,22 @@ void FWorldGenerationRunnable::GenerateDynamicMesh()
 	});
 }
 
-void FWorldGenerationRunnable::GenerateBasicLand()
+void FWorldGenerationRunnable::GenerateBasicHeights()
 {
-	// create vertices in row-major order: x changes fastest (this makes it faster? I watched a Youtube short and I know that they are closer in memory positions now)
-	for (int IndexY = 0; IndexY < NumPointsPerLine; ++IndexY) {
-		float VertexY = -OwnerLandscape->LandscapeData.RenderDistance + IndexY * OwnerLandscape->LandscapeData.Resolution;
+	ModifyMesh([&](FVector CurrentVertexLocation) -> double {
+		float Height = OwnerLandscape->BasicLandNoise.GetNoise(CurrentVertexLocation.X + LocalClientPawnLocation.X / 50, CurrentVertexLocation.Y + LocalClientPawnLocation.Y / 50) * OwnerLandscape->LandscapeData.HeightScale;
 
-		for (int IndexX = 0; IndexX < NumPointsPerLine; ++IndexX) {
-			float VertexX = -OwnerLandscape->LandscapeData.RenderDistance + IndexX * OwnerLandscape->LandscapeData.Resolution;
-
-			// get noise for height
-			float Height = OwnerLandscape->BasicLandNoise.GetNoise(VertexX + LocalClientPawnLocation.X / 50, VertexY + LocalClientPawnLocation.Y / 50) * OwnerLandscape->LandscapeData.HeightScale;
-
-			// create vertex and remember its index (use local mesh)
-			FVector NewVertex = FVector3d(VertexX + LocalClientPawnLocation.X / 50, VertexY + LocalClientPawnLocation.Y / 50, Height);
-			VertexLocations.Add(NewVertex);
-		}
-	}
+		return Height;
+	});
 }
 
 void FWorldGenerationRunnable::ApplyPlateTectonics()
 {
-	int Index = 0;
-	for (int IndexY = 0; IndexY < NumPointsPerLine; ++IndexY) {
-		float VertexY = -OwnerLandscape->LandscapeData.RenderDistance + IndexY * OwnerLandscape->LandscapeData.Resolution;
+	ModifyMesh([&](FVector CurrentVertexLocation) -> double {
 
-		for (int IndexX = 0; IndexX < NumPointsPerLine; ++IndexX) {
-			float VertexX = -OwnerLandscape->LandscapeData.RenderDistance + IndexX * OwnerLandscape->LandscapeData.Resolution;
 
-			// get noise for height
-			FVector CurrentPointLocation = VertexLocations[Index];
-
-			// create vertex and remember its index (use local mesh)
-			FVector NewVertex = CurrentPointLocation;
-			VertexLocations.Add(NewVertex);
-		}
-	}
+		return CurrentVertexLocation.Z;
+	});
 }
 
 void FWorldGenerationRunnable::FinalizeLandMesh()
@@ -148,7 +130,7 @@ void FWorldGenerationRunnable::FinalizeLandMesh()
 			float VertexX = -OwnerLandscape->LandscapeData.RenderDistance + IndexX * OwnerLandscape->LandscapeData.Resolution;
 
 			// create vertex and remember its index (use local mesh)
-			int32 NewVertex = (int32)DynamicMesh->GetMeshPtr()->AppendVertex(VertexLocations[Index]);
+			int32 NewVertex = (int32)DynamicMesh->GetMeshPtr()->AppendVertex(FVector(VertexX, VertexY, VertexHeights[Index]));
 			check(DynamicMesh->GetMeshPtr()->IsVertex(NewVertex));
 			Verticies.Add(NewVertex);
 			Index++;
@@ -171,4 +153,31 @@ void FWorldGenerationRunnable::FinalizeLandMesh()
 			DynamicMesh->GetMeshPtr()->AppendTriangle(TopLeftVertex, BottomRightVertex, TopRightVertex);
 		}
 	}
+}
+
+void FWorldGenerationRunnable::ModifyMesh(TFunctionRef<double(FVector)> ModifyFunc)
+{
+	int Index = 0;
+
+	int64 ReserveCount = NumPointsPerLine ^ 2;
+	if (NumPointsPerLine > TNumericLimits<int32>::Max()) ReserveCount = TNumericLimits<int32>::Max();
+	TArray<double> NewVertexHeights;
+	NewVertexHeights.Reserve((int32)ReserveCount);
+
+	for (int IndexY = 0; IndexY < NumPointsPerLine; ++IndexY) {
+		float VertexY = -OwnerLandscape->LandscapeData.RenderDistance + IndexY * OwnerLandscape->LandscapeData.Resolution;
+
+		for (int IndexX = 0; IndexX < NumPointsPerLine; ++IndexX) {
+			float VertexX = -OwnerLandscape->LandscapeData.RenderDistance + IndexX * OwnerLandscape->LandscapeData.Resolution;
+
+			const double CurrentVertexHeight = !VertexHeights.IsEmpty() ? VertexHeights[Index] : 0;
+			const FVector CurrentVertexLocation = FVector(VertexX + OwnerLandscape->LocalClientPawn->GetActorLocation().X, VertexY + OwnerLandscape->LocalClientPawn->GetActorLocation().Y, CurrentVertexHeight);
+
+			double NewVertexHeight = ModifyFunc(CurrentVertexLocation);
+			NewVertexHeights.Add(NewVertexHeight);
+			Index++;
+		}
+	}
+	
+	VertexHeights = MoveTemp(NewVertexHeights);
 }

@@ -35,9 +35,11 @@ public:
 protected:
 	void GenerateDynamicMesh();
 
-	void GenerateBasicLand();
+	void GenerateBasicHeights();
 	void ApplyPlateTectonics();
 	void FinalizeLandMesh();
+
+	void ModifyMesh(TFunctionRef<double(FVector)> ModifyFunc);
 
 	FRunnableThread* Thread;
 	bool bRunThread = true;
@@ -46,7 +48,7 @@ protected:
 	UWorld* CurrentWorld;
 
 	TArray<int32> Verticies;
-	TArray<FVector> VertexLocations;
+	TArray<double> VertexHeights;
 
 	double LastRenderDistance;
 	FVector3d LocalClientPawnLocation;
