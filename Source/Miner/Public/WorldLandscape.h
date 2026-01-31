@@ -14,7 +14,7 @@ DECLARE_MULTICAST_DELEGATE(FTerrainDataGeneratedDelegate);
 
 USTRUCT(BlueprintType)
 struct FTerrainMaterials {
-	GENERATED_USTRUCT_BODY()
+	GENERATED_BODY()
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "Grass Material"))
@@ -23,20 +23,23 @@ public:
 
 USTRUCT(BlueprintType)
 struct FWorldGenerationData {
-	GENERATED_USTRUCT_BODY();
+	GENERATED_BODY();
 
 public:
+	UPROPERTY(EditAnywhere, meta = (ToolTip = "The number that controls all randomness"))
+	int Seed;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "How much distance to go until checking the noise again."))
-	float Resolution;
+	double Resolution;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "Height Scale of the Landscape"))
-	float HeightScale;
+	double HeightScale;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "Chunk spacing/Distance to go until make chunk follow"))
-	float ChunkDistance;
+	double ChunkDistance;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "How far the chunk should go"))
-	float RenderDistance;
+	double RenderDistance;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "Default Material"))
 	FTerrainMaterials LandscapeMaterials;
@@ -97,14 +100,17 @@ public:
 	UPROPERTY(Transient)
 	TObjectPtr<UDynamicMesh> DynamicMesh;
 
-	TObjectPtr<FastNoiseLite> Noise;
+	FastNoiseLite BasicLandNoise;
+
+	FastNoiseLite PlateTectonicsNoise;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape")
 	FWorldGenerationData LandscapeData{
-		1,    // Resolution
-		300.0f,    // Height Scale
-		1000.0f,    // Chunk Distance
-		100.0f    // Render Distance
+		1337,											// Seed
+		1,												// Resolution
+		300.0f,											// Height Scale
+		1000.0f,										// Chunk Distance
+		100.0f											// Render Distance
 	};
 
 	UPROPERTY(BlueprintReadOnly, meta = (Tooltip = "The local pawn for this client. Does not need to be changed by blueprints because it is automatically set at beginplay in c++."))
@@ -120,6 +126,8 @@ protected:
 	void SetupNoise();
 	void GenerateTerrain();
 
+	void SetNoiseParameters(FastNoiseLite& NoiseObject, const FNoiseSettings& NoiseSettings);
+
 	UPROPERTY(Category = DynamicMeshActor, VisibleAnywhere, BlueprintReadOnly, meta = (ExposeFunctionCategories = "Mesh,Rendering,Physics,Components|StaticMesh", AllowPrivateAccess = "true"))
 	TObjectPtr<class UDynamicMeshComponent> DynamicMeshComponent;
 
@@ -128,49 +136,40 @@ protected:
 	TObjectPtr<UDynamicMeshPool> DynamicMeshPool;
 
 	UPROPERTY(EditAnywhere, Category = "Noise")
-	int Seed = 1337;
+	FNoiseSettings BasicLandNoiseSettings {
+		0.1f,											// Frequency
+		NoiseType_Perlin, 								// Noise Type
+		RotationType3D_None,							// Rotation Type 3D
+		FractalType_FBm,								// Fractal Type
+		3,												// Fractal Octaves
+		2.0f,											// Fractal Lacunarity
+		0.5f,											// Fractal Gain
+		0.0f,											// Fractal Weighted Strength
+		2.0f,											// Fractal Ping Pong Strength
+		CellularDistanceFunction_EuclideanSq,			// Cellular Distance Function
+		CellularReturnType_Distance,					// Cellular Return Type
+		1.0f,											// Cellular Jitter
+		DomainWarpType_OpenSimplex2,					// Domain Warp Type
+		-4.5f											// Domain Warp Amp
+	};
 
 	UPROPERTY(EditAnywhere, Category = "Noise")
-	float Frequency = 0.03f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Noise")
-	TEnumAsByte<FastNoiseLiteTypes_NoiseType> NoiseType = NoiseType_Perlin;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Noise")
-	TEnumAsByte<FastNoiseLiteTypes_RotationType3D> RotationType3D = RotationType3D_None;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Noise")
-	TEnumAsByte<FastNoiseLiteTypes_FractalType> FractalType = FractalType_FBm;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Noise")
-	int FractalOctaves = 3;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Noise")
-	float FractalLacunarity = 2.0f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Noise")
-	float FractalGain = 0.5f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Noise")
-	float FractalWeightedStrength = 0.0f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Noise")
-	float FractalPingPongStrength = 2.0f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Noise")
-	TEnumAsByte<FastNoiseLiteTypes_CellularDistanceFunction> CellularDistanceFunction = CellularDistanceFunction_EuclideanSq;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Noise")
-	TEnumAsByte<FastNoiseLiteTypes_CellularReturnType> CellularReturnType = CellularReturnType_Distance;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Noise")
-	float CellularJitter = 1.0f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Noise")
-	TEnumAsByte<FastNoiseLiteTypes_DomainWarpType> DomainWarpType = DomainWarpType_OpenSimplex2;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Noise")
-	float DomainWarpAmp = 1.0f;
+	FNoiseSettings PlateTectonicsNoiseSettings{
+		0.01f,											// Frequency
+		NoiseType_Perlin, 								// Noise Type
+		RotationType3D_None,							// Rotation Type 3D
+		FractalType_FBm,								// Fractal Type
+		3,												// Fractal Octaves
+		2.0f,											// Fractal Lacunarity
+		0.5f,											// Fractal Gain
+		0.0f,											// Fractal Weighted Strength
+		2.0f,											// Fractal Ping Pong Strength
+		CellularDistanceFunction_EuclideanSq,			// Cellular Distance Function
+		CellularReturnType_Distance,					// Cellular Return Type
+		1.0f,											// Cellular Jitter
+		DomainWarpType_OpenSimplex2,					// Domain Warp Type
+		-4.5f											// Domain Warp Amp
+	};
 
 	UE::Geometry::EValidityCheckFailMode ValidityCheckFailMode = UE::Geometry::EValidityCheckFailMode::Ensure;
 
