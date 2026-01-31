@@ -50,7 +50,7 @@ protected:
 	TArray<int32> Verticies;
 	TArray<double> VertexHeights;
 
-	double LastRenderDistance;
+	double LastRenderDistance = -1;
 	FVector3d LocalClientPawnLocation;
 	int64 NumPointsPerLine;
 };

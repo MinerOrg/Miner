@@ -70,18 +70,23 @@ void FWorldGenerationRunnable::GenerateDynamicMesh()
 
 	DynamicMesh->InitializeMesh();
 
+	Verticies.Empty();
+	VertexHeights.Empty();
+
 	// Local Client Pawn Location always changes
 	LocalClientPawnLocation = (CurrentWorld->IsGameWorld()) ? OwnerLandscape->LocalClientPawn->GetActorLocation() : FVector3d::ZeroVector;
 
 	// These things only change if render distance changes
 	if (OwnerLandscape->LandscapeData.RenderDistance != LastRenderDistance) {
 		NumPointsPerLine = FMath::FloorToInt((OwnerLandscape->LandscapeData.RenderDistance * 2.0f) / OwnerLandscape->LandscapeData.Resolution) + 1;
-		int64 ReserveCount = NumPointsPerLine ^ 2;
+		int64 ReserveCount = NumPointsPerLine * NumPointsPerLine;    // You apparently can't use ^ for power, it is bitwise, and the Unreal power function requires floats
 		if (NumPointsPerLine > TNumericLimits<int32>::Max()) ReserveCount = TNumericLimits<int32>::Max();
 		Verticies.Reserve((int32)ReserveCount);
 		VertexHeights.Reserve((int32)ReserveCount);
 		LastRenderDistance = OwnerLandscape->LandscapeData.RenderDistance;
 	}
+
+	check(LastRenderDistance > 0);
 
 	GenerateBasicHeights();
 	ApplyPlateTectonics();
@@ -130,7 +135,7 @@ void FWorldGenerationRunnable::FinalizeLandMesh()
 			float VertexX = -OwnerLandscape->LandscapeData.RenderDistance + IndexX * OwnerLandscape->LandscapeData.Resolution;
 
 			// create vertex and remember its index (use local mesh)
-			int32 NewVertex = (int32)DynamicMesh->GetMeshPtr()->AppendVertex(FVector(VertexX, VertexY, VertexHeights[Index]));
+			int32 NewVertex = (int32)DynamicMesh->GetMeshPtr()->AppendVertex(FVector(VertexX + LocalClientPawnLocation.X / 50, VertexY + LocalClientPawnLocation.Y / 50, VertexHeights[Index]));
 			check(DynamicMesh->GetMeshPtr()->IsVertex(NewVertex));
 			Verticies.Add(NewVertex);
 			Index++;
@@ -159,7 +164,7 @@ void FWorldGenerationRunnable::ModifyMesh(TFunctionRef<double(FVector)> ModifyFu
 {
 	int Index = 0;
 
-	int64 ReserveCount = NumPointsPerLine ^ 2;
+	int64 ReserveCount = NumPointsPerLine * NumPointsPerLine;
 	if (NumPointsPerLine > TNumericLimits<int32>::Max()) ReserveCount = TNumericLimits<int32>::Max();
 	TArray<double> NewVertexHeights;
 	NewVertexHeights.Reserve((int32)ReserveCount);
@@ -171,7 +176,7 @@ void FWorldGenerationRunnable::ModifyMesh(TFunctionRef<double(FVector)> ModifyFu
 			float VertexX = -OwnerLandscape->LandscapeData.RenderDistance + IndexX * OwnerLandscape->LandscapeData.Resolution;
 
 			const double CurrentVertexHeight = !VertexHeights.IsEmpty() ? VertexHeights[Index] : 0;
-			const FVector CurrentVertexLocation = FVector(VertexX + OwnerLandscape->LocalClientPawn->GetActorLocation().X, VertexY + OwnerLandscape->LocalClientPawn->GetActorLocation().Y, CurrentVertexHeight);
+			const FVector CurrentVertexLocation = FVector(VertexX, VertexY, CurrentVertexHeight);    // Do all the calculations in local space, then transfer to world space later when finalizing the mesh
 
 			double NewVertexHeight = ModifyFunc(CurrentVertexLocation);
 			NewVertexHeights.Add(NewVertexHeight);

@@ -96,7 +96,7 @@ void AWorldLandscape::EndPlay(const EEndPlayReason::Type EndPlayReason)
 void AWorldLandscape::SetupNoise()
 {
 	// Get the seed from the gamemode
-	if (IsValid(UGameplayStatics::GetGameMode(GetWorld())))    LandscapeData.Seed = CastChecked<AWorldGameMode>(UGameplayStatics::GetGameMode(GetWorld()))->Seed;
+	if (IsValid(UGameplayStatics::GetGameMode(GetWorld()))) LandscapeData.Seed = CastChecked<AWorldGameMode>(UGameplayStatics::GetGameMode(GetWorld()))->Seed;
 	else LandscapeData.Seed = 1337;
 
 	// Set noise parameters
