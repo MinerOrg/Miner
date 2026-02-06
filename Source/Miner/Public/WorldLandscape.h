@@ -12,39 +12,6 @@ DECLARE_LOG_CATEGORY_EXTERN(LogLandscape, Log, All);
 
 DECLARE_MULTICAST_DELEGATE(FTerrainDataGeneratedDelegate);
 
-USTRUCT(BlueprintType)
-struct FTerrainMaterials {
-	GENERATED_BODY()
-
-public:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "Grass Material"))
-	UMaterialInterface* GrassMaterial;
-};
-
-USTRUCT(BlueprintType)
-struct FWorldGenerationData {
-	GENERATED_BODY();
-
-public:
-	UPROPERTY(EditAnywhere, meta = (ToolTip = "The number that controls all randomness"))
-	int Seed;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "How much distance to go until checking the noise again."))
-	double Resolution;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "Height Scale of the Landscape"))
-	double HeightScale;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "Chunk spacing/Distance to go until make chunk follow"))
-	double ChunkDistance;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "How far the chunk should go"))
-	double RenderDistance;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "Default Material"))
-	FTerrainMaterials LandscapeMaterials;
-};
-
 /**
  * AWorldLandscape is an Actor that generates a dynamic landscape mesh based on a seed
  */
@@ -104,14 +71,29 @@ public:
 
 	FastNoiseLite PlateTectonicsNoise;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape")
-	FWorldGenerationData LandscapeData{
-		1337,											// Seed
-		1,												// Resolution
-		300.0f,											// Height Scale
-		1000.0f,										// Chunk Distance
-		100.0f											// Render Distance
-	};
+	//===============================================================================================================
+	// Variables for landscape generation.
+	UPROPERTY(EditAnywhere, Category = "Landscape", meta = (ToolTip = "The number that controls all randomness"))
+	int Seed = 1337;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "How much distance to go until checking the noise again."))
+	double Resolution = 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "Height Scale of the Landscape"))
+	double HeightScale = 300.00f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "Chunk spacing/Distance to go until make chunk follow"))
+	double ChunkDistance = 1000.00f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "How far the chunk should go"))
+	double RenderDistance = 100.00f;
+	//===============================================================================================================
+
+	//===============================================================================================================
+	// Materials for the landscape
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape|Materials", meta = (ToolTip = "Grass Material"))
+	UMaterialInterface* GrassMaterial;
+	//===============================================================================================================
 
 	UPROPERTY(BlueprintReadOnly, meta = (Tooltip = "The local pawn for this client. Does not need to be changed by blueprints because it is automatically set at beginplay in c++."))
 	APawn* LocalClientPawn;
