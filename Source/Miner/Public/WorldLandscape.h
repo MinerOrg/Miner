@@ -61,42 +61,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = DynamicMeshActor)
 	void FreeAllComputeMeshes();
 
-	// I had to make these variables public, so that landscape data could be generated
-	// in the worldgenerationrunnable
-
 	UPROPERTY(Transient)
 	TObjectPtr<UDynamicMesh> DynamicMesh;
 
-	FastNoiseLite BasicLandNoise;
-
-	FastNoiseLite PlateTectonicsNoise;
-
-	//===============================================================================================================
-	// Variables for landscape generation.
-	UPROPERTY(EditAnywhere, Category = "Landscape", meta = (ToolTip = "The number that controls all randomness"))
-	int Seed = 1337;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "How much distance to go until checking the noise again."))
-	double Resolution = 1;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "Height Scale of the Landscape"))
-	double HeightScale = 300.00f;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "Chunk spacing/Distance to go until make chunk follow"))
-	double ChunkDistance = 1000.00f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "How far the chunk should go"))
-	double RenderDistance = 100.00f;
-	//===============================================================================================================
-
-	//===============================================================================================================
-	// Materials for the landscape
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape|Materials", meta = (ToolTip = "Grass Material"))
-	UMaterialInterface* GrassMaterial;
-	//===============================================================================================================
-
-	UPROPERTY(BlueprintReadOnly, meta = (Tooltip = "The local pawn for this client. Does not need to be changed by blueprints because it is automatically set at beginplay in c++."))
-	APawn* LocalClientPawn;
+	friend class FWorldGenerationRunnable;
 
 	FTerrainDataGeneratedDelegate ApplyTerrainDataDelegate;
 
@@ -116,6 +84,37 @@ protected:
 	/** The internal Mesh Pool, for use in DynamicMeshActor BPs. Use GetComputeMeshPool() to access this, as it will only be created on-demand if bEnableComputeMeshPool = true */
 	UPROPERTY(Transient)
 	TObjectPtr<UDynamicMeshPool> DynamicMeshPool;
+
+	FastNoiseLite BasicLandNoise;
+
+	FastNoiseLite PlateTectonicsNoise;
+
+	//===============================================================================================================
+	// Variables for landscape generation.
+	UPROPERTY(EditDefaultsOnly, Category = "Landscape", meta = (ToolTip = "The number that controls all randomness"))
+	int Seed = 1337;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "How much distance to go until checking the noise again."))
+	double Resolution = 1;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "Height Scale of the Landscape"))
+	double HeightScale = 300.00f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "Chunk spacing/Distance to go until make chunk follow"))
+	double ChunkDistance = 1000.00f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "How far the chunk should go"))
+	double RenderDistance = 100.00f;
+	//===============================================================================================================
+
+	//===============================================================================================================
+	// Materials for the landscape
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Landscape|Materials", meta = (ToolTip = "Grass Material"))
+	UMaterialInterface* GrassMaterial;
+	//===============================================================================================================
+
+	UPROPERTY(BlueprintReadOnly, meta = (Tooltip = "The local pawn for this client. Does not need to be changed by blueprints because it is automatically set at beginplay in c++."))
+	APawn* LocalClientPawn;
 
 	UPROPERTY(EditAnywhere, Category = "Noise")
 	FNoiseSettings BasicLandNoiseSettings {
