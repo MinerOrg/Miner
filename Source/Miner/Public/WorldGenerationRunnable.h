@@ -6,6 +6,23 @@
 #include "HAL/Runnable.h"
 #include "UDynamicMesh.h"
 
+UENUM(BlueprintType)
+enum class EPlateDirection : uint8
+{
+	North,
+	East,
+	South,
+	West
+};
+
+UENUM(BlueprintType)
+enum class ECollisionType : uint8 
+{
+	None, 
+	Push,
+	Pull
+};
+
 class FSingleThreadRunnable;
 class AWorldLandscape;
 
@@ -40,6 +57,16 @@ protected:
 	void FinalizeLandMesh();
 
 	void ModifyMesh(TFunctionRef<double(FVector)> ModifyFunc);
+	/**
+	* The master veretex is the most top left vertex, then if there are multiple, the highest
+	* It also has to connect to a black part of the main plate in order to count.
+	* This is nessesary so that a world generates the same everytime.
+	*/
+	FVector2D FindMasterVertexOfPlate(FVector2D BoarderLocation);
+	/**
+	*
+	*/
+	ECollisionType ArePlatesColliding(EPlateDirection Plate1Direction, EPlateDirection Plate2Direction);
 
 	FRunnableThread* Thread;
 	bool bRunThread = true;

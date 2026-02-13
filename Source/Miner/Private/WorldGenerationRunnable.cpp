@@ -107,8 +107,8 @@ void FWorldGenerationRunnable::GenerateDynamicMesh()
 
 void FWorldGenerationRunnable::GenerateBasicHeights()
 {
-	ModifyMesh([&](FVector CurrentVertexLocation) -> double {
-		float Height = OwnerLandscape->BasicLandNoise.GetNoise(CurrentVertexLocation.X + LocalClientPawnLocation.X / 50, CurrentVertexLocation.Y + LocalClientPawnLocation.Y / 50) * OwnerLandscape->LandscapeData.HeightScale;
+	ModifyMesh([&](FVector LocalVertexLocation) -> double {
+		float Height = OwnerLandscape->BasicLandNoise.GetNoise(LocalVertexLocation.X + LocalClientPawnLocation.X / 50, LocalVertexLocation.Y + LocalClientPawnLocation.Y / 50) * OwnerLandscape->LandscapeData.HeightScale;
 
 		return Height;
 	});
@@ -116,10 +116,31 @@ void FWorldGenerationRunnable::GenerateBasicHeights()
 
 void FWorldGenerationRunnable::ApplyPlateTectonics()
 {
-	ModifyMesh([&](FVector CurrentVertexLocation) -> double {
+	ModifyMesh([&](FVector LocalVertexLocation) -> double {
+		double FinalHeight = LocalVertexLocation.Z;
+		FVector2D WorldVertexLocation = FVector2D(LocalVertexLocation.X + LocalClientPawnLocation.X / 50, LocalVertexLocation.Y + LocalClientPawnLocation.Y / 50);
 
+		// If it is a border, decide if you need to make anything
+		if (double CurrentNoiseValue = OwnerLandscape->PlateTectonicsNoise.GetNoise(WorldVertexLocation.X, WorldVertexLocation.Y) >= OwnerLandscape->LandscapeData.PlateBoarderThreshhold) {
+			// Tmp
+			EPlateDirection Plate1Direction = (EPlateDirection)FMath::RoundToInt32(FMath::Fmod(WorldVertexLocation.X * WorldVertexLocation.Y, 4.0f));
+			EPlateDirection Plate2Direction = (EPlateDirection)FMath::RoundToInt32(FMath::Fmod(WorldVertexLocation.X * WorldVertexLocation.Y + 67, 4.0f));
 
-		return CurrentVertexLocation.Z;
+			switch (ArePlatesColliding(Plate1Direction, Plate2Direction))
+			{
+				case ECollisionType::Push:
+					FinalHeight += OwnerLandscape->PlateTectonicsNoise.GetNoise(WorldVertexLocation.X, WorldVertexLocation.Y) * OwnerLandscape->LandscapeData.PlateTectonicsHeightScale;
+					break;
+				case ECollisionType::Pull:
+					FinalHeight -= OwnerLandscape->PlateTectonicsNoise.GetNoise(WorldVertexLocation.X, WorldVertexLocation.Y) * OwnerLandscape->LandscapeData.PlateTectonicsHeightScale;
+					break;
+				default:
+					// None collision type
+					break;
+			}
+		}
+
+		return FinalHeight;
 	});
 }
 
@@ -185,4 +206,41 @@ void FWorldGenerationRunnable::ModifyMesh(TFunctionRef<double(FVector)> ModifyFu
 	}
 	
 	VertexHeights = MoveTemp(NewVertexHeights);
+}
+
+FVector2D FWorldGenerationRunnable::FindMasterVertexOfPlate(FVector2D BoarderVertexLocation)
+{
+	FVector2D MostTopLeftPoint = BoarderVertexLocation;
+	double StepDistance = OwnerLandscape->LandscapeData.Resolution;
+	bool Done = false;
+
+	while (!Done) {
+		// Check up
+		for (int i = 0; i <= OwnerLandscape->LandscapeData.PlateBoarderCheckAttempts; i++) {
+			FVector2D CurrentLocation = FVector2D(MostTopLeftPoint.X, MostTopLeftPoint.Y + StepDistance * i);
+			if (double NoiseSample = OwnerLandscape->PlateTectonicsNoise.GetNoise(CurrentLocation.X, CurrentLocation.Y) >= OwnerLandscape->LandscapeData.PlateBoarderThreshhold) {
+				i = 0;
+				MostTopLeftPoint = FVector2D(MostTopLeftPoint.X, MostTopLeftPoint.Y + StepDistance + i);
+				continue;
+			}
+		}
+
+		// Check left
+		for (int i = 0; i <= OwnerLandscape->LandscapeData.PlateBoarderCheckAttempts; i++) {
+			FVector2D CurrentLocation = FVector2D(MostTopLeftPoint.X, MostTopLeftPoint.Y - StepDistance * i);
+			if (double NoiseSample = OwnerLandscape->PlateTectonicsNoise.GetNoise(CurrentLocation.X, CurrentLocation.Y) >= OwnerLandscape->LandscapeData.PlateBoarderThreshhold) {
+				i = 0;
+				MostTopLeftPoint = FVector2D(MostTopLeftPoint.X - StepDistance - i, MostTopLeftPoint.Y);
+				continue;
+			}
+		}
+	}
+
+	return MostTopLeftPoint;
+}
+
+ECollisionType FWorldGenerationRunnable::ArePlatesColliding(EPlateDirection Plate1Direction, EPlateDirection Plate2Direction)
+{
+	// Tmp return push
+	return ECollisionType::Push;
 }

@@ -26,23 +26,32 @@ struct FWorldGenerationData {
 	GENERATED_BODY();
 
 public:
-	UPROPERTY(EditAnywhere, meta = (ToolTip = "The number that controls all randomness"))
-	int Seed;
+	UPROPERTY(EditAnywhere, meta = (ToolTip = "The number that controls all randomness in terrain"))
+	int Seed = 1337;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "How much distance to go until checking the noise again."))
-	double Resolution;
+	double Resolution = 1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "Height Scale of the Landscape"))
-	double HeightScale;
+	double HeightScale = 300;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "Chunk spacing/Distance to go until make chunk follow"))
-	double ChunkDistance;
+	double ChunkDistance = 1000;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "How far the chunk should go"))
-	double RenderDistance;
+	double RenderDistance = 100;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "Default Material"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "How big the value of the cellular noise has to be inorder to count as a plate edge.", ClampMin = 0, ClampMax = 1))
+	double PlateBoarderThreshhold = 0.5;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "How big the value of the cellular noise has to be inorder to count as a plate edge."))
+	int PlateBoarderCheckAttempts = 10;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "Landscape Materials"))
 	FTerrainMaterials LandscapeMaterials;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "The amount to multiply the value of plate tectonics by."))
+	double PlateTectonicsHeightScale = 100;
 };
 
 /**
@@ -105,13 +114,7 @@ public:
 	FastNoiseLite PlateTectonicsNoise;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape")
-	FWorldGenerationData LandscapeData{
-		1337,											// Seed
-		1,												// Resolution
-		300.0f,											// Height Scale
-		1000.0f,										// Chunk Distance
-		100.0f											// Render Distance
-	};
+	FWorldGenerationData LandscapeData;
 
 	UPROPERTY(BlueprintReadOnly, meta = (Tooltip = "The local pawn for this client. Does not need to be changed by blueprints because it is automatically set at beginplay in c++."))
 	APawn* LocalClientPawn;
@@ -156,7 +159,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Noise")
 	FNoiseSettings PlateTectonicsNoiseSettings{
 		0.01f,											// Frequency
-		NoiseType_Perlin, 								// Noise Type
+		NoiseType_Cellular, 								// Noise Type
 		RotationType3D_None,							// Rotation Type 3D
 		FractalType_FBm,								// Fractal Type
 		3,												// Fractal Octaves

@@ -16,9 +16,7 @@ public class MinerServerTarget : TargetRules
         DefaultBuildSettings = BuildSettingsVersion.V6;
         IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_7;
 
-        //MinerGameTarget.ApplySharedMinerTargetSettings(this); // IDK what this does
-
-        bUseChecksInShipping = false;
+        bUseChecksInShipping = false;    // Should be false because if the server randomly crashes it will be bad, every player would disconnect and it is worse than just 1 player disconnecting. This might make people not find bugs, but it is worth it for stability.
         //bUseIris = true;
     }
 }
