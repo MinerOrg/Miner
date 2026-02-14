@@ -117,7 +117,7 @@ public:
 	FWorldGenerationData LandscapeData;
 
 	UPROPERTY(BlueprintReadOnly, meta = (Tooltip = "The local pawn for this client. Does not need to be changed by blueprints because it is automatically set at beginplay in c++."))
-	APawn* LocalClientPawn;
+	APawn* LocalClientPawn = nullptr;
 
 	FTerrainDataGeneratedDelegate ApplyTerrainDataDelegate;
 
@@ -178,11 +178,11 @@ protected:
 
 	FDynamicMesh3::FValidityOptions ValidityOptions = { false, false };
 
-	FWorldGenerationRunnable* WorldGenerationRunnable;
+	FWorldGenerationRunnable* WorldGenerationRunnable = nullptr;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Landscape Generation")
 	TArray<FVector> GeneratedVertexLocations;
 
 	UPROPERTY(BlueprintReadWrite)
-	FVector LastPlayerLocation;
+	FVector LastPlayerLocation = FVector::ZeroVector;
 };

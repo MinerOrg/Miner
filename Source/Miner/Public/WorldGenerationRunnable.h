@@ -56,7 +56,7 @@ protected:
 	void ApplyPlateTectonics();
 	void FinalizeLandMesh();
 
-	void ModifyMesh(TFunctionRef<double(FVector)> ModifyFunc);
+	void ModifyHeightArray(TFunctionRef<double(FVector)> ModifyFunc);
 	/**
 	* The master veretex is the most top left vertex, then if there are multiple, the highest
 	* It also has to connect to a black part of the main plate in order to count.
@@ -75,6 +75,7 @@ protected:
 	UWorld* CurrentWorld;
 
 	TArray<int32> Verticies;
+	/* Sort of like a height map, but not a map. Maybe make it a map? */
 	TArray<double> VertexHeights;
 
 	double LastRenderDistance = -1;

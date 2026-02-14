@@ -30,10 +30,6 @@ AWorldLandscape::AWorldLandscape()
 
 	SetRootComponent(DynamicMeshComponent);
 
-	LastPlayerLocation = FVector::ZeroVector;
-	LocalClientPawn = nullptr;
-	WorldGenerationRunnable = nullptr;
-
 	ApplyTerrainDataDelegate.AddUObject(this, &AWorldLandscape::GenerateTerrain);
 }
 

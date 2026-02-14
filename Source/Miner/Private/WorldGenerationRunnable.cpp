@@ -107,7 +107,7 @@ void FWorldGenerationRunnable::GenerateDynamicMesh()
 
 void FWorldGenerationRunnable::GenerateBasicHeights()
 {
-	ModifyMesh([&](FVector LocalVertexLocation) -> double {
+	ModifyHeightArray([&](FVector LocalVertexLocation) -> double {
 		float Height = OwnerLandscape->BasicLandNoise.GetNoise(LocalVertexLocation.X + LocalClientPawnLocation.X / 50, LocalVertexLocation.Y + LocalClientPawnLocation.Y / 50) * OwnerLandscape->LandscapeData.HeightScale;
 
 		return Height;
@@ -116,12 +116,13 @@ void FWorldGenerationRunnable::GenerateBasicHeights()
 
 void FWorldGenerationRunnable::ApplyPlateTectonics()
 {
-	ModifyMesh([&](FVector LocalVertexLocation) -> double {
+	ModifyHeightArray([&](FVector LocalVertexLocation) -> double {
 		double FinalHeight = LocalVertexLocation.Z;
 		FVector2D WorldVertexLocation = FVector2D(LocalVertexLocation.X + LocalClientPawnLocation.X / 50, LocalVertexLocation.Y + LocalClientPawnLocation.Y / 50);
 
 		// If it is a border, decide if you need to make anything
-		if (double CurrentNoiseValue = OwnerLandscape->PlateTectonicsNoise.GetNoise(WorldVertexLocation.X, WorldVertexLocation.Y) >= OwnerLandscape->LandscapeData.PlateBoarderThreshhold) {
+		double CurrentNoiseValue = OwnerLandscape->PlateTectonicsNoise.GetNoise(WorldVertexLocation.X, WorldVertexLocation.Y);
+		if (CurrentNoiseValue >= OwnerLandscape->LandscapeData.PlateBoarderThreshhold) {
 			// Tmp
 			EPlateDirection Plate1Direction = (EPlateDirection)FMath::RoundToInt32(FMath::Fmod(WorldVertexLocation.X * WorldVertexLocation.Y, 4.0f));
 			EPlateDirection Plate2Direction = (EPlateDirection)FMath::RoundToInt32(FMath::Fmod(WorldVertexLocation.X * WorldVertexLocation.Y + 67, 4.0f));
@@ -181,7 +182,7 @@ void FWorldGenerationRunnable::FinalizeLandMesh()
 	}
 }
 
-void FWorldGenerationRunnable::ModifyMesh(TFunctionRef<double(FVector)> ModifyFunc)
+void FWorldGenerationRunnable::ModifyHeightArray(TFunctionRef<double(FVector)> ModifyFunc)
 {
 	int Index = 0;
 
