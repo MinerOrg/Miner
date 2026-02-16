@@ -97,14 +97,23 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "How much distance to go until checking the noise again."))
 	double Resolution = 1;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "Height Scale of the Landscape"))
-	double HeightScale = 300.00f;
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "Chunk spacing/Distance to go until make chunk follow"))
 	double ChunkDistance = 1000.00f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "How far the chunk should go"))
 	double RenderDistance = 100.00f;
+  
+  UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "Height Scale of the Landscape"))
+	double HeightScale = 300.00f;
+  
+  UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "The amount to multiply the value of plate tectonics by."))
+	double PlateTectonicsHeightScale = 100;
+  
+  UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "How big the value of the cellular noise has to be inorder to count as a plate edge.", ClampMin = 0, ClampMax = 1))
+	double PlateBoarderThreshhold = 0.5;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "How big the value of the cellular noise has to be inorder to count as a plate edge."))
+	int PlateBoarderCheckAttempts = 10;
 	//===============================================================================================================
 
 	//===============================================================================================================
@@ -137,7 +146,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Noise")
 	FNoiseSettings PlateTectonicsNoiseSettings{
 		0.01f,											// Frequency
-		NoiseType_Perlin, 								// Noise Type
+		NoiseType_Cellular, 								// Noise Type
 		RotationType3D_None,							// Rotation Type 3D
 		FractalType_FBm,								// Fractal Type
 		3,												// Fractal Octaves
@@ -156,11 +165,11 @@ protected:
 
 	FDynamicMesh3::FValidityOptions ValidityOptions = { false, false };
 
-	FWorldGenerationRunnable* WorldGenerationRunnable;
+	FWorldGenerationRunnable* WorldGenerationRunnable = nullptr;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Landscape Generation")
 	TArray<FVector> GeneratedVertexLocations;
 
 	UPROPERTY(BlueprintReadWrite)
-	FVector LastPlayerLocation;
+	FVector LastPlayerLocation = FVector::ZeroVector;
 };

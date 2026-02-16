@@ -52,11 +52,5 @@
 README.md text
 LICENSE   text
 
-# I think added by Git LFS to make sure that it is not included with LFS
-*.md !text !filter !merge !diff
-*.ini !text !filter !merge !diff
-*.gitattributes !text !filter !merge !diff
-*.gitignore !text !filter !merge !diff
-*.cpp !text !filter !merge !diff
-*.h !text !filter !merge !diff
-*.cs !text !filter !merge !diff
+# Make thirdparty locked because they are not meant to be writen often or even at all (ex: FastNoiseLite.h)
+/Source/ThirdParty/** lockable

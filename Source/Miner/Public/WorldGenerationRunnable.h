@@ -6,6 +6,23 @@
 #include "HAL/Runnable.h"
 #include "UDynamicMesh.h"
 
+UENUM(BlueprintType)
+enum class EPlateDirection : uint8
+{
+	North,
+	East,
+	South,
+	West
+};
+
+UENUM(BlueprintType)
+enum class ECollisionType : uint8 
+{
+	None, 
+	Push,
+	Pull
+};
+
 class FSingleThreadRunnable;
 class AWorldLandscape;
 
@@ -39,7 +56,17 @@ protected:
 	void ApplyPlateTectonics();
 	void FinalizeLandMesh();
 
-	void ModifyMesh(TFunctionRef<double(FVector)> ModifyFunc);
+	void ModifyHeightArray(TFunctionRef<double(FVector)> ModifyFunc);
+	/**
+	* The master veretex is the most top left vertex, then if there are multiple, the highest
+	* It also has to connect to a black part of the main plate in order to count.
+	* This is nessesary so that a world generates the same everytime.
+	*/
+	FVector2D FindMasterVertexOfPlate(FVector2D BoarderLocation);
+	/**
+	*
+	*/
+	ECollisionType ArePlatesColliding(EPlateDirection Plate1Direction, EPlateDirection Plate2Direction);
 
 	FRunnableThread* Thread;
 	bool bRunThread = true;
@@ -48,6 +75,7 @@ protected:
 	UWorld* CurrentWorld;
 
 	TArray<int32> Verticies;
+	/* Sort of like a height map, but not a map. Maybe make it a map? */
 	TArray<double> VertexHeights;
 
 	double LastRenderDistance = -1;
