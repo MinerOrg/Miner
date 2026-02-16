@@ -110,7 +110,7 @@ void FWorldGenerationRunnable::GenerateBasicHeights()
 	TRACE_CPUPROFILER_EVENT_SCOPE(GenerateBasicHeights);
 
 	ModifyHeightArray([&](FVector LocalVertexLocation) -> double {
-		float Height = OwnerLandscape->BasicLandNoise.GetNoise(LocalVertexLocation.X + LocalClientPawnLocation.X / 50, LocalVertexLocation.Y + LocalClientPawnLocation.Y / 50) * OwnerLandscape->LandscapeData.HeightScale;
+		float Height = OwnerLandscape->BasicLandNoise.GetNoise(LocalVertexLocation.X + LocalClientPawnLocation.X / 50, LocalVertexLocation.Y + LocalClientPawnLocation.Y / 50) * OwnerLandscape->HeightScale;
 
 		return Height;
 	});
@@ -125,7 +125,7 @@ void FWorldGenerationRunnable::ApplyPlateTectonics()
 		FVector2D WorldVertexLocation = FVector2D(LocalVertexLocation.X + LocalClientPawnLocation.X / 50, LocalVertexLocation.Y + LocalClientPawnLocation.Y / 50);
 
 		double CurrentNoiseValue = FMath::Abs(OwnerLandscape->PlateTectonicsNoise.GetNoise(WorldVertexLocation.X, WorldVertexLocation.Y));    // For some reason the noise can be negative, so make it absolute value
-		if (CurrentNoiseValue >= OwnerLandscape->LandscapeData.PlateBoarderThreshhold) {
+		if (CurrentNoiseValue >= OwnerLandscape->PlateBoarderThreshhold) {
 			// Tmp
 			//EPlateDirection Plate1Direction = (EPlateDirection)FMath::RoundToInt32(FMath::Fmod(FindMasterVertexOfPlate(WorldVertexLocation), 4.0f));
 			//EPlateDirection Plate2Direction = (EPlateDirection)FMath::RoundToInt32(FMath::Fmod(FindMasterVertexOfPlate(WorldVertexLocation) * 67, 4.0f));
@@ -133,10 +133,10 @@ void FWorldGenerationRunnable::ApplyPlateTectonics()
 			switch (ArePlatesColliding(EPlateDirection::East, EPlateDirection::South))
 			{
 				case ECollisionType::Push:
-					FinalHeight += CurrentNoiseValue * OwnerLandscape->LandscapeData.PlateTectonicsHeightScale;
+					FinalHeight += CurrentNoiseValue * OwnerLandscape->PlateTectonicsHeightScale;
 					break;
 				case ECollisionType::Pull:
-					FinalHeight -= CurrentNoiseValue * OwnerLandscape->LandscapeData.PlateTectonicsHeightScale;
+					FinalHeight -= CurrentNoiseValue * OwnerLandscape->PlateTectonicsHeightScale;
 					break;
 				default:
 					// None collision type
@@ -219,14 +219,14 @@ FVector2D FWorldGenerationRunnable::FindMasterVertexOfPlate(FVector2D BoarderVer
 	TRACE_CPUPROFILER_EVENT_SCOPE(FindMasterVertexOfPlate);
 
 	FVector2D MostTopLeftPoint = BoarderVertexLocation;
-	double StepDistance = OwnerLandscape->LandscapeData.Resolution;
+	double StepDistance = OwnerLandscape->Resolution;
 	bool Done = false;
 
 	while (!Done) {
 		// Check up
-		for (int i = 0; i <= OwnerLandscape->LandscapeData.PlateBoarderCheckAttempts; i++) {
+		for (int i = 0; i <= OwnerLandscape->PlateBoarderCheckAttempts; i++) {
 			FVector2D CurrentLocation = FVector2D(MostTopLeftPoint.X, MostTopLeftPoint.Y + StepDistance * i);
-			if (double NoiseSample = OwnerLandscape->PlateTectonicsNoise.GetNoise(CurrentLocation.X, CurrentLocation.Y) >= OwnerLandscape->LandscapeData.PlateBoarderThreshhold) {
+			if (double NoiseSample = OwnerLandscape->PlateTectonicsNoise.GetNoise(CurrentLocation.X, CurrentLocation.Y) >= OwnerLandscape->PlateBoarderThreshhold) {
 				i = 0;
 				MostTopLeftPoint = FVector2D(MostTopLeftPoint.X, MostTopLeftPoint.Y + StepDistance + i);
 				continue;
@@ -234,9 +234,9 @@ FVector2D FWorldGenerationRunnable::FindMasterVertexOfPlate(FVector2D BoarderVer
 		}
 
 		// Check left
-		for (int i = 0; i <= OwnerLandscape->LandscapeData.PlateBoarderCheckAttempts; i++) {
+		for (int i = 0; i <= OwnerLandscape->PlateBoarderCheckAttempts; i++) {
 			FVector2D CurrentLocation = FVector2D(MostTopLeftPoint.X, MostTopLeftPoint.Y - StepDistance * i);
-			if (double NoiseSample = OwnerLandscape->PlateTectonicsNoise.GetNoise(CurrentLocation.X, CurrentLocation.Y) >= OwnerLandscape->LandscapeData.PlateBoarderThreshhold) {
+			if (double NoiseSample = OwnerLandscape->PlateTectonicsNoise.GetNoise(CurrentLocation.X, CurrentLocation.Y) >= OwnerLandscape->PlateBoarderThreshhold) {
 				i = 0;
 				MostTopLeftPoint = FVector2D(MostTopLeftPoint.X - StepDistance - i, MostTopLeftPoint.Y);
 				continue;
