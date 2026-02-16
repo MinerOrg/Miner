@@ -77,13 +77,13 @@ void FWorldGenerationRunnable::GenerateDynamicMesh()
 	LocalClientPawnLocation = (CurrentWorld->IsGameWorld()) ? OwnerLandscape->LocalClientPawn->GetActorLocation() : FVector3d::ZeroVector;
 
 	// These things only change if render distance changes
-	if (OwnerLandscape->LandscapeData.RenderDistance != LastRenderDistance) {
-		NumPointsPerLine = FMath::FloorToInt((OwnerLandscape->LandscapeData.RenderDistance * 2.0f) / OwnerLandscape->LandscapeData.Resolution) + 1;
+	if (OwnerLandscape->RenderDistance != LastRenderDistance) {
+		NumPointsPerLine = FMath::FloorToInt((OwnerLandscape->RenderDistance * 2.0f) / OwnerLandscape->Resolution) + 1;
 		int64 ReserveCount = NumPointsPerLine * NumPointsPerLine;    // You apparently can't use ^ for power, it is bitwise, and the Unreal power function requires floats
 		if (NumPointsPerLine > TNumericLimits<int32>::Max()) ReserveCount = TNumericLimits<int32>::Max();
 		Verticies.Reserve((int32)ReserveCount);
 		VertexHeights.Reserve((int32)ReserveCount);
-		LastRenderDistance = OwnerLandscape->LandscapeData.RenderDistance;
+		LastRenderDistance = OwnerLandscape->RenderDistance;
 	}
 
 	check(LastRenderDistance > 0);
@@ -156,10 +156,10 @@ void FWorldGenerationRunnable::FinalizeLandMesh()
 
 	// Make the verticies
 	for (int IndexY = 0; IndexY < NumPointsPerLine; ++IndexY) {
-		float VertexY = -OwnerLandscape->LandscapeData.RenderDistance + IndexY * OwnerLandscape->LandscapeData.Resolution;
+		float VertexY = -OwnerLandscape->RenderDistance + IndexY * OwnerLandscape->Resolution;
 
 		for (int IndexX = 0; IndexX < NumPointsPerLine; ++IndexX) {
-			float VertexX = -OwnerLandscape->LandscapeData.RenderDistance + IndexX * OwnerLandscape->LandscapeData.Resolution;
+			float VertexX = -OwnerLandscape->RenderDistance + IndexX * OwnerLandscape->Resolution;
 
 			// create vertex and remember its index (use local mesh)
 			int32 NewVertex = (int32)DynamicMesh->GetMeshPtr()->AppendVertex(FVector(VertexX + LocalClientPawnLocation.X / 50, VertexY + LocalClientPawnLocation.Y / 50, VertexHeights[Index]));
@@ -197,10 +197,10 @@ void FWorldGenerationRunnable::ModifyHeightArray(TFunctionRef<double(FVector)> M
 	NewVertexHeights.Reserve((int32)ReserveCount);
 
 	for (int IndexY = 0; IndexY < NumPointsPerLine; ++IndexY) {
-		float VertexY = -OwnerLandscape->LandscapeData.RenderDistance + IndexY * OwnerLandscape->LandscapeData.Resolution;
+		float VertexY = -OwnerLandscape->RenderDistance + IndexY * OwnerLandscape->Resolution;
 
 		for (int IndexX = 0; IndexX < NumPointsPerLine; ++IndexX) {
-			float VertexX = -OwnerLandscape->LandscapeData.RenderDistance + IndexX * OwnerLandscape->LandscapeData.Resolution;
+			float VertexX = -OwnerLandscape->RenderDistance + IndexX * OwnerLandscape->Resolution;
 
 			const double CurrentVertexHeight = !VertexHeights.IsEmpty() ? VertexHeights[Index] : 0;
 			const FVector CurrentVertexLocation = FVector(VertexX, VertexY, CurrentVertexHeight);    // Do all the calculations in local space, then transfer to world space later when finalizing the mesh

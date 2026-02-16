@@ -12,48 +12,6 @@ DECLARE_LOG_CATEGORY_EXTERN(LogLandscape, Log, All);
 
 DECLARE_MULTICAST_DELEGATE(FTerrainDataGeneratedDelegate);
 
-USTRUCT(BlueprintType)
-struct FTerrainMaterials {
-	GENERATED_BODY()
-
-public:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "Grass Material"))
-	UMaterialInterface* GrassMaterial;
-};
-
-USTRUCT(BlueprintType)
-struct FWorldGenerationData {
-	GENERATED_BODY();
-
-public:
-	UPROPERTY(EditAnywhere, meta = (ToolTip = "The number that controls all randomness in terrain"))
-	int Seed = 1337;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "How much distance to go until checking the noise again."))
-	double Resolution = 1;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "Height Scale of the Landscape"))
-	double HeightScale = 300;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "Chunk spacing/Distance to go until make chunk follow"))
-	double ChunkDistance = 1000;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "How far the chunk should go"))
-	double RenderDistance = 100;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "How big the value of the cellular noise has to be inorder to count as a plate edge.", ClampMin = 0, ClampMax = 1))
-	double PlateBoarderThreshhold = 0.5;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "How big the value of the cellular noise has to be inorder to count as a plate edge."))
-	int PlateBoarderCheckAttempts = 10;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "Landscape Materials"))
-	FTerrainMaterials LandscapeMaterials;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "The amount to multiply the value of plate tectonics by."))
-	double PlateTectonicsHeightScale = 100;
-};
-
 /**
  * AWorldLandscape is an Actor that generates a dynamic landscape mesh based on a seed
  */
@@ -103,21 +61,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = DynamicMeshActor)
 	void FreeAllComputeMeshes();
 
-	// I had to make these variables public, so that landscape data could be generated
-	// in the worldgenerationrunnable
-
 	UPROPERTY(Transient)
 	TObjectPtr<UDynamicMesh> DynamicMesh;
 
-	FastNoiseLite BasicLandNoise;
-
-	FastNoiseLite PlateTectonicsNoise;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape")
-	FWorldGenerationData LandscapeData;
-
-	UPROPERTY(BlueprintReadOnly, meta = (Tooltip = "The local pawn for this client. Does not need to be changed by blueprints because it is automatically set at beginplay in c++."))
-	APawn* LocalClientPawn = nullptr;
+	friend class FWorldGenerationRunnable;
 
 	FTerrainDataGeneratedDelegate ApplyTerrainDataDelegate;
 
@@ -137,6 +84,46 @@ protected:
 	/** The internal Mesh Pool, for use in DynamicMeshActor BPs. Use GetComputeMeshPool() to access this, as it will only be created on-demand if bEnableComputeMeshPool = true */
 	UPROPERTY(Transient)
 	TObjectPtr<UDynamicMeshPool> DynamicMeshPool;
+
+	FastNoiseLite BasicLandNoise;
+
+	FastNoiseLite PlateTectonicsNoise;
+
+	//===============================================================================================================
+	// Variables for landscape generation.
+	UPROPERTY(EditDefaultsOnly, Category = "Landscape", meta = (ToolTip = "The number that controls all randomness"))
+	int Seed = 1337;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "How much distance to go until checking the noise again."))
+	double Resolution = 1;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "Chunk spacing/Distance to go until make chunk follow"))
+	double ChunkDistance = 1000.00f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "How far the chunk should go"))
+	double RenderDistance = 100.00f;
+  
+  UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "Height Scale of the Landscape"))
+	double HeightScale = 300.00f;
+  
+  UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "The amount to multiply the value of plate tectonics by."))
+	double PlateTectonicsHeightScale = 100;
+  
+  UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "How big the value of the cellular noise has to be inorder to count as a plate edge.", ClampMin = 0, ClampMax = 1))
+	double PlateBoarderThreshhold = 0.5;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "How big the value of the cellular noise has to be inorder to count as a plate edge."))
+	int PlateBoarderCheckAttempts = 10;
+	//===============================================================================================================
+
+	//===============================================================================================================
+	// Materials for the landscape
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Landscape|Materials", meta = (ToolTip = "Grass Material"))
+	UMaterialInterface* GrassMaterial;
+	//===============================================================================================================
+
+	UPROPERTY(BlueprintReadOnly, meta = (Tooltip = "The local pawn for this client. Does not need to be changed by blueprints because it is automatically set at beginplay in c++."))
+	APawn* LocalClientPawn;
 
 	UPROPERTY(EditAnywhere, Category = "Noise")
 	FNoiseSettings BasicLandNoiseSettings {

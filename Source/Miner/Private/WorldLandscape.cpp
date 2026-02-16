@@ -37,7 +37,7 @@ void AWorldLandscape::BeginPlay()
 {
 	Super::BeginPlay();
 
-	checkf(LandscapeData.ChunkDistance != 0, TEXT("Chunk distance cannot be 0"));
+	checkf(ChunkDistance != 0, TEXT("Chunk distance cannot be 0"));
 
 	// Get local client pawn
 	checkf(IsValid(LocalClientPawn = GetWorld()->GetFirstPlayerController()->GetPawn()), TEXT("Local Pawn was bad"));
@@ -45,13 +45,13 @@ void AWorldLandscape::BeginPlay()
 
 	DynamicMesh = AllocateComputeMesh();
 	DynamicMeshComponent->SetDynamicMesh(DynamicMesh);
-	DynamicMeshComponent->SetMaterial(0, LandscapeData.LandscapeMaterials.GrassMaterial);
+	DynamicMeshComponent->SetMaterial(0, GrassMaterial);
 
 	// Create the thread that generates the vertex locations
 	WorldGenerationRunnable = new FWorldGenerationRunnable(this, GetWorld());
 
 	// Pre-allocate vertex locations array
-	const int NumPointsPerLine = FMath::FloorToInt((LandscapeData.RenderDistance * 2.0f) / LandscapeData.Resolution) + 1;
+	const int NumPointsPerLine = FMath::FloorToInt((RenderDistance * 2.0f) / Resolution) + 1;
 	int64 ReserveCount = (int64)NumPointsPerLine * (int64)NumPointsPerLine;
 	if (ReserveCount > TNumericLimits<int32>::Max()) ReserveCount = TNumericLimits<int32>::Max();
 	GeneratedVertexLocations.Reserve((int32)ReserveCount);
@@ -71,7 +71,7 @@ void AWorldLandscape::Tick(float DeltaTime)
 	FVector LocalClientPawnLocation = LocalClientPawn->GetActorLocation();
 
 	// If the player has moved out of bounds, make the mesh follow them. (No Z check for now) (make sure that this runs last because if it is generating it will return)
-	if (FMath::RoundToInt(LastPlayerLocation.X / LandscapeData.ChunkDistance) * LandscapeData.ChunkDistance != FMath::RoundToInt(LocalClientPawnLocation.X / LandscapeData.ChunkDistance) * LandscapeData.ChunkDistance || FMath::RoundToInt(LastPlayerLocation.Y / LandscapeData.ChunkDistance) * LandscapeData.ChunkDistance != FMath::RoundToInt(LocalClientPawnLocation.Y / LandscapeData.ChunkDistance) * LandscapeData.ChunkDistance /* || FMath::RoundToInt(LastPlayerLocation.Z / ChunkDistance) * ChunkDistance != LocalClientPawnLocation.Z */) {
+	if (FMath::RoundToInt(LastPlayerLocation.X / ChunkDistance) * ChunkDistance != FMath::RoundToInt(LocalClientPawnLocation.X / ChunkDistance) * ChunkDistance || FMath::RoundToInt(LastPlayerLocation.Y / ChunkDistance) * ChunkDistance != FMath::RoundToInt(LocalClientPawnLocation.Y / ChunkDistance) * ChunkDistance /* || FMath::RoundToInt(LastPlayerLocation.Z / ChunkDistance) * ChunkDistance != LocalClientPawnLocation.Z */) {
 		if (WorldGenerationRunnable->bGenerate) { return; }
 		
 		LastPlayerLocation = LocalClientPawnLocation;
@@ -92,8 +92,8 @@ void AWorldLandscape::EndPlay(const EEndPlayReason::Type EndPlayReason)
 void AWorldLandscape::SetupNoise()
 {
 	// Get the seed from the gamemode
-	if (IsValid(UGameplayStatics::GetGameMode(GetWorld()))) LandscapeData.Seed = CastChecked<AWorldGameMode>(UGameplayStatics::GetGameMode(GetWorld()))->Seed;
-	else LandscapeData.Seed = 1337;
+	if (IsValid(UGameplayStatics::GetGameMode(GetWorld()))) Seed = CastChecked<AWorldGameMode>(UGameplayStatics::GetGameMode(GetWorld()))->Seed;
+	else Seed = 1337;
 
 	// Set noise parameters
 	SetNoiseParameters(BasicLandNoise, BasicLandNoiseSettings);
@@ -121,7 +121,7 @@ void AWorldLandscape::GenerateTerrain()
 
 void AWorldLandscape::SetNoiseParameters(FastNoiseLite& NoiseObject, const FNoiseSettings& NoiseSettings)
 {
-	NoiseObject = FastNoiseLite(LandscapeData.Seed);
+	NoiseObject = FastNoiseLite(Seed);
 
 	NoiseObject.SetFrequency(NoiseSettings.Frequency);
 	NoiseObject.SetNoiseType(static_cast<FastNoiseLite::NoiseType>(NoiseSettings.NoiseType.GetValue()));
