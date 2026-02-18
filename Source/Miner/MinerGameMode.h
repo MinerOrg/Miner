@@ -16,6 +16,4 @@ class AMinerGameMode : public AGameModeBase
 
 public:
 	AMinerGameMode();
-
-	float Seed;
 };

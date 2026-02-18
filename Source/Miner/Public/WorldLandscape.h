@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "UDynamicMesh.h"
 #include "Components/DynamicMeshComponent.h"
-#include "FastNoiseLiteTypes.h"
+#include "ThridPartyHelpers/FastNoiseLiteTypes.h"
 #include "WorldLandscape.generated.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogLandscape, Log, All);
@@ -76,7 +76,19 @@ protected:
 	void SetupNoise();
 	void GenerateTerrain();
 
-	void SetNoiseParameters(FastNoiseLite& NoiseObject, const FNoiseSettings& NoiseSettings);
+	void SetNoiseParameters(FastNoiseLite *& Noise, const FNoiseSettings& NoiseSettings);
+
+	void CleanUp();
+
+	template <class T>
+	void CleanUpPointer(T Pointer)
+	{
+		if (Pointer)
+		{
+			delete Pointer;
+			Pointer = nullptr;
+		}
+	}
 
 	UPROPERTY(Category = DynamicMeshActor, VisibleAnywhere, BlueprintReadOnly, meta = (ExposeFunctionCategories = "Mesh,Rendering,Physics,Components|StaticMesh", AllowPrivateAccess = "true"))
 	TObjectPtr<class UDynamicMeshComponent> DynamicMeshComponent;
@@ -85,9 +97,9 @@ protected:
 	UPROPERTY(Transient)
 	TObjectPtr<UDynamicMeshPool> DynamicMeshPool;
 
-	FastNoiseLite BasicLandNoise;
+	FastNoiseLite* BasicLandNoise;
 
-	FastNoiseLite PlateTectonicsNoise;
+	FastNoiseLite* PlateTectonicsNoise;
 
 	//===============================================================================================================
 	// Variables for landscape generation.
@@ -106,13 +118,13 @@ protected:
   UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "Height Scale of the Landscape"))
 	double HeightScale = 300.00f;
   
-  UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "The amount to multiply the value of plate tectonics by."))
+  UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "The amount to multiply the value of plate tectonics by."))
 	double PlateTectonicsHeightScale = 100;
   
-  UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "How big the value of the cellular noise has to be inorder to count as a plate edge.", ClampMin = 0, ClampMax = 1))
+  UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "How big the value of the cellular noise has to be inorder to count as a plate edge.", ClampMin = 0, ClampMax = 1))
 	double PlateBoarderThreshhold = 0.5;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "How big the value of the cellular noise has to be inorder to count as a plate edge."))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "How big the value of the cellular noise has to be inorder to count as a plate edge."))
 	int PlateBoarderCheckAttempts = 10;
 	//===============================================================================================================
 

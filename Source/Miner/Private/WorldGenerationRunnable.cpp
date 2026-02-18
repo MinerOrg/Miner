@@ -2,7 +2,7 @@
 
 #include "WorldGenerationRunnable.h"
 #include "WorldLandscape.h"
-#include "FastNoiseLite.h"
+#include "ThirdPartyLibraries/FastNoiseLite.h"
 
 DEFINE_LOG_CATEGORY(LogWorldGenerationThread);
 
@@ -110,7 +110,7 @@ void FWorldGenerationRunnable::GenerateBasicHeights()
 	TRACE_CPUPROFILER_EVENT_SCOPE(GenerateBasicHeights);
 
 	ModifyHeightArray([&](FVector LocalVertexLocation) -> double {
-		float Height = OwnerLandscape->BasicLandNoise.GetNoise(LocalVertexLocation.X + LocalClientPawnLocation.X / 50, LocalVertexLocation.Y + LocalClientPawnLocation.Y / 50) * OwnerLandscape->HeightScale;
+		float Height = OwnerLandscape->BasicLandNoise->GetNoise(LocalVertexLocation.X + LocalClientPawnLocation.X / 50, LocalVertexLocation.Y + LocalClientPawnLocation.Y / 50) * OwnerLandscape->HeightScale;
 
 		return Height;
 	});
@@ -124,7 +124,7 @@ void FWorldGenerationRunnable::ApplyPlateTectonics()
 		double FinalHeight = LocalVertexLocation.Z;
 		FVector2D WorldVertexLocation = FVector2D(LocalVertexLocation.X + LocalClientPawnLocation.X / 50, LocalVertexLocation.Y + LocalClientPawnLocation.Y / 50);
 
-		double CurrentNoiseValue = FMath::Abs(OwnerLandscape->PlateTectonicsNoise.GetNoise(WorldVertexLocation.X, WorldVertexLocation.Y));    // For some reason the noise can be negative, so make it absolute value
+		double CurrentNoiseValue = FMath::Abs(OwnerLandscape->PlateTectonicsNoise->GetNoise(WorldVertexLocation.X, WorldVertexLocation.Y));    // For some reason the noise can be negative, so make it absolute value
 		if (CurrentNoiseValue >= OwnerLandscape->PlateBoarderThreshhold) {
 			// Tmp
 			//EPlateDirection Plate1Direction = (EPlateDirection)FMath::RoundToInt32(FMath::Fmod(FindMasterVertexOfPlate(WorldVertexLocation), 4.0f));
@@ -226,7 +226,7 @@ FVector2D FWorldGenerationRunnable::FindMasterVertexOfPlate(FVector2D BoarderVer
 		// Check up
 		for (int i = 0; i <= OwnerLandscape->PlateBoarderCheckAttempts; i++) {
 			FVector2D CurrentLocation = FVector2D(MostTopLeftPoint.X, MostTopLeftPoint.Y + StepDistance * i);
-			if (double NoiseSample = OwnerLandscape->PlateTectonicsNoise.GetNoise(CurrentLocation.X, CurrentLocation.Y) >= OwnerLandscape->PlateBoarderThreshhold) {
+			if (double NoiseSample = OwnerLandscape->PlateTectonicsNoise->GetNoise(CurrentLocation.X, CurrentLocation.Y) >= OwnerLandscape->PlateBoarderThreshhold) {
 				i = 0;
 				MostTopLeftPoint = FVector2D(MostTopLeftPoint.X, MostTopLeftPoint.Y + StepDistance + i);
 				continue;
@@ -236,7 +236,7 @@ FVector2D FWorldGenerationRunnable::FindMasterVertexOfPlate(FVector2D BoarderVer
 		// Check left
 		for (int i = 0; i <= OwnerLandscape->PlateBoarderCheckAttempts; i++) {
 			FVector2D CurrentLocation = FVector2D(MostTopLeftPoint.X, MostTopLeftPoint.Y - StepDistance * i);
-			if (double NoiseSample = OwnerLandscape->PlateTectonicsNoise.GetNoise(CurrentLocation.X, CurrentLocation.Y) >= OwnerLandscape->PlateBoarderThreshhold) {
+			if (double NoiseSample = OwnerLandscape->PlateTectonicsNoise->GetNoise(CurrentLocation.X, CurrentLocation.Y) >= OwnerLandscape->PlateBoarderThreshhold) {
 				i = 0;
 				MostTopLeftPoint = FVector2D(MostTopLeftPoint.X - StepDistance - i, MostTopLeftPoint.Y);
 				continue;
