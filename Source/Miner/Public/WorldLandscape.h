@@ -10,7 +10,7 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogLandscape, Log, All);
 
-DECLARE_MULTICAST_DELEGATE(FTerrainDataGeneratedDelegate);
+DECLARE_MULTICAST_DELEGATE(FTerrainDataGeneratedSignature);
 
 /**
  * AWorldLandscape is an Actor that generates a dynamic landscape mesh based on a seed
@@ -66,7 +66,7 @@ public:
 
 	friend class FWorldGenerationRunnable;
 
-	FTerrainDataGeneratedDelegate ApplyTerrainDataDelegate;
+	FTerrainDataGeneratedSignature ApplyTerrainDataDelegate;
 
 protected:
 	virtual void BeginPlay() override;
@@ -97,9 +97,9 @@ protected:
 	UPROPERTY(Transient)
 	TObjectPtr<UDynamicMeshPool> DynamicMeshPool;
 
-	FastNoiseLite* BasicLandNoise;
+	FastNoiseLite* BasicLandNoise = nullptr;
 
-	FastNoiseLite* PlateTectonicsNoise;
+	FastNoiseLite* PlateTectonicsNoise = nullptr;
 
 	//===============================================================================================================
 	// Variables for landscape generation.
@@ -131,11 +131,11 @@ protected:
 	//===============================================================================================================
 	// Materials for the landscape
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Landscape|Materials", meta = (ToolTip = "Grass Material"))
-	UMaterialInterface* GrassMaterial;
+	UMaterialInterface* GrassMaterial = nullptr;
 	//===============================================================================================================
 
 	UPROPERTY(BlueprintReadOnly, meta = (Tooltip = "The local pawn for this client. Does not need to be changed by blueprints because it is automatically set at beginplay in c++."))
-	APawn* LocalClientPawn;
+	APawn* LocalClientPawn = nullptr;
 
 	UPROPERTY(EditAnywhere, Category = "Noise")
 	FNoiseSettings BasicLandNoiseSettings {

@@ -4,7 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "MinerGameMode.h"
+#include "WorldLandscape.h"
 #include "WorldGameMode.generated.h"
+
+class APlayerCharacter;
 
 /**
  * 
@@ -20,7 +23,7 @@ public:
 protected:
 	virtual void BeginPlay();
 
-	void SetPlayerSpawn(AActor* Player);
+	void SetPlayerSpawns();
 	/** For now just find an acceptable height at 0, 0, 0 */
 	FVector FindPlayerSpawnLocation() const;
 
@@ -29,4 +32,8 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Spawning|Player")
 	TEnumAsByte<ECollisionChannel> LandscapeChannel = ECC_WorldStatic;
+
+	TObjectPtr<AWorldLandscape> Landscape = nullptr;
+
+	FTerrainDataGeneratedSignature LandscapeGeneratedDelegate;
 };
