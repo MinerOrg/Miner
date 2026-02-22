@@ -50,6 +50,8 @@
 #ifndef FASTNOISELITE_H
 #define FASTNOISELITE_H
 
+#pragma once
+
 #include <cmath>
 
 class FastNoiseLite

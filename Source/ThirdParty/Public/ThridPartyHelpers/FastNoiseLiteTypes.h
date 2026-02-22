@@ -1,7 +1,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "FastNoiseLite.h"
 #include "FastNoiseLiteTypes.generated.h"
 
 UENUM(BlueprintType)

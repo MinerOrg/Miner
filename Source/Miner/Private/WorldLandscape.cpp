@@ -5,7 +5,7 @@
 #include "MaterialDomain.h"
 #include "Materials/Material.h"
 #include "Kismet/GameplayStatics.h"
-#include "FastNoiseLite.h"
+#include "ThirdPartyLibraries/FastNoiseLite.h"
 #include "WorldGameMode.h"
 #include "WorldGenerationRunnable.h"
 #include "Async/Async.h"
@@ -56,6 +56,11 @@ void AWorldLandscape::BeginPlay()
 	if (ReserveCount > TNumericLimits<int32>::Max()) ReserveCount = TNumericLimits<int32>::Max();
 	GeneratedVertexLocations.Reserve((int32)ReserveCount);
 
+	// Get the seed from the gamemode 
+	// Note: not in use now, that will be changed later. Seed is controlled by a local uproperty right now
+	/*if (IsValid(UGameplayStatics::GetGameMode(GetWorld()))) Seed = CastChecked<AWorldGameMode>(UGameplayStatics::GetGameMode(GetWorld()))->Seed;
+	else Seed = 1337; */
+
 	SetupNoise();
 
 	// Generate the mesh (last step)
@@ -86,15 +91,11 @@ void AWorldLandscape::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 
 	FreeAllComputeMeshes();
-	delete WorldGenerationRunnable;
+	CleanUp();
 }
 
 void AWorldLandscape::SetupNoise()
 {
-	// Get the seed from the gamemode
-	if (IsValid(UGameplayStatics::GetGameMode(GetWorld()))) Seed = CastChecked<AWorldGameMode>(UGameplayStatics::GetGameMode(GetWorld()))->Seed;
-	else Seed = 1337;
-
 	// Set noise parameters
 	SetNoiseParameters(BasicLandNoise, BasicLandNoiseSettings);
 	SetNoiseParameters(PlateTectonicsNoise, PlateTectonicsNoiseSettings);
@@ -119,24 +120,30 @@ void AWorldLandscape::GenerateTerrain()
 	});
 }
 
-void AWorldLandscape::SetNoiseParameters(FastNoiseLite& NoiseObject, const FNoiseSettings& NoiseSettings)
+void AWorldLandscape::SetNoiseParameters(FastNoiseLite*& Noise, const FNoiseSettings& NoiseSettings)
 {
-	NoiseObject = FastNoiseLite(Seed);
+	Noise = new FastNoiseLite(Seed);
 
-	NoiseObject.SetFrequency(NoiseSettings.Frequency);
-	NoiseObject.SetNoiseType(static_cast<FastNoiseLite::NoiseType>(NoiseSettings.NoiseType.GetValue()));
-	NoiseObject.SetRotationType3D(static_cast<FastNoiseLite::RotationType3D>(NoiseSettings.RotationType3D.GetValue()));
-	NoiseObject.SetFractalType(static_cast<FastNoiseLite::FractalType>(NoiseSettings.FractalType.GetValue()));
-	NoiseObject.SetFractalOctaves(NoiseSettings.FractalOctaves);
-	NoiseObject.SetFractalLacunarity(NoiseSettings.FractalLacunarity);
-	NoiseObject.SetFractalGain(NoiseSettings.FractalGain);
-	NoiseObject.SetFractalWeightedStrength(NoiseSettings.FractalWeightedStrength);
-	NoiseObject.SetFractalPingPongStrength(NoiseSettings.FractalPingPongStrength);
-	NoiseObject.SetCellularDistanceFunction(static_cast<FastNoiseLite::CellularDistanceFunction>(NoiseSettings.CellularDistanceFunction.GetValue()));
-	NoiseObject.SetCellularReturnType(static_cast<FastNoiseLite::CellularReturnType>(NoiseSettings.CellularReturnType.GetValue()));
-	NoiseObject.SetCellularJitter(NoiseSettings.CellularJitter);
-	NoiseObject.SetDomainWarpType(static_cast<FastNoiseLite::DomainWarpType>(NoiseSettings.DomainWarpType.GetValue()));
-	NoiseObject.SetDomainWarpAmp(NoiseSettings.DomainWarpAmp);
+	Noise->SetFrequency(NoiseSettings.Frequency);
+	Noise->SetNoiseType(static_cast<FastNoiseLite::NoiseType>(NoiseSettings.NoiseType.GetValue()));
+	Noise->SetRotationType3D(static_cast<FastNoiseLite::RotationType3D>(NoiseSettings.RotationType3D.GetValue()));
+	Noise->SetFractalType(static_cast<FastNoiseLite::FractalType>(NoiseSettings.FractalType.GetValue()));
+	Noise->SetFractalOctaves(NoiseSettings.FractalOctaves);
+	Noise->SetFractalLacunarity(NoiseSettings.FractalLacunarity);
+	Noise->SetFractalGain(NoiseSettings.FractalGain);
+	Noise->SetFractalWeightedStrength(NoiseSettings.FractalWeightedStrength);
+	Noise->SetFractalPingPongStrength(NoiseSettings.FractalPingPongStrength);
+	Noise->SetCellularDistanceFunction(static_cast<FastNoiseLite::CellularDistanceFunction>(NoiseSettings.CellularDistanceFunction.GetValue()));
+	Noise->SetCellularReturnType(static_cast<FastNoiseLite::CellularReturnType>(NoiseSettings.CellularReturnType.GetValue()));
+	Noise->SetCellularJitter(NoiseSettings.CellularJitter);
+	Noise->SetDomainWarpType(static_cast<FastNoiseLite::DomainWarpType>(NoiseSettings.DomainWarpType.GetValue()));
+	Noise->SetDomainWarpAmp(NoiseSettings.DomainWarpAmp);
+}
+
+void AWorldLandscape::CleanUp()
+{
+	CleanUpPointer(BasicLandNoise);
+	CleanUpPointer(PlateTectonicsNoise);
 }
 
 UDynamicMeshPool* AWorldLandscape::GetComputeMeshPool()

@@ -5,12 +5,12 @@
 #include "CoreMinimal.h"
 #include "UDynamicMesh.h"
 #include "Components/DynamicMeshComponent.h"
-#include "FastNoiseLiteTypes.h"
+#include "ThridPartyHelpers/FastNoiseLiteTypes.h"
 #include "WorldLandscape.generated.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogLandscape, Log, All);
 
-DECLARE_MULTICAST_DELEGATE(FTerrainDataGeneratedDelegate);
+DECLARE_MULTICAST_DELEGATE(FTerrainDataGeneratedSignature);
 
 /**
  * AWorldLandscape is an Actor that generates a dynamic landscape mesh based on a seed
@@ -66,7 +66,7 @@ public:
 
 	friend class FWorldGenerationRunnable;
 
-	FTerrainDataGeneratedDelegate ApplyTerrainDataDelegate;
+	FTerrainDataGeneratedSignature ApplyTerrainDataDelegate;
 
 protected:
 	virtual void BeginPlay() override;
@@ -76,7 +76,19 @@ protected:
 	void SetupNoise();
 	void GenerateTerrain();
 
-	void SetNoiseParameters(FastNoiseLite& NoiseObject, const FNoiseSettings& NoiseSettings);
+	void SetNoiseParameters(FastNoiseLite *& Noise, const FNoiseSettings& NoiseSettings);
+
+	void CleanUp();
+
+	template <class T>
+	void CleanUpPointer(T Pointer)
+	{
+		if (Pointer)
+		{
+			delete Pointer;
+			Pointer = nullptr;
+		}
+	}
 
 	UPROPERTY(Category = DynamicMeshActor, VisibleAnywhere, BlueprintReadOnly, meta = (ExposeFunctionCategories = "Mesh,Rendering,Physics,Components|StaticMesh", AllowPrivateAccess = "true"))
 	TObjectPtr<class UDynamicMeshComponent> DynamicMeshComponent;
@@ -85,9 +97,9 @@ protected:
 	UPROPERTY(Transient)
 	TObjectPtr<UDynamicMeshPool> DynamicMeshPool;
 
-	FastNoiseLite BasicLandNoise;
+	FastNoiseLite* BasicLandNoise = nullptr;
 
-	FastNoiseLite PlateTectonicsNoise;
+	FastNoiseLite* PlateTectonicsNoise = nullptr;
 
 	//===============================================================================================================
 	// Variables for landscape generation.
@@ -106,24 +118,24 @@ protected:
   UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "Height Scale of the Landscape"))
 	double HeightScale = 300.00f;
   
-  UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "The amount to multiply the value of plate tectonics by."))
+  UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "The amount to multiply the value of plate tectonics by."))
 	double PlateTectonicsHeightScale = 100;
   
-  UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "How big the value of the cellular noise has to be inorder to count as a plate edge.", ClampMin = 0, ClampMax = 1))
+  UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "How big the value of the cellular noise has to be inorder to count as a plate edge.", ClampMin = 0, ClampMax = 1))
 	double PlateBoarderThreshhold = 0.5;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ToolTip = "How big the value of the cellular noise has to be inorder to count as a plate edge."))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "How big the value of the cellular noise has to be inorder to count as a plate edge."))
 	int PlateBoarderCheckAttempts = 10;
 	//===============================================================================================================
 
 	//===============================================================================================================
 	// Materials for the landscape
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Landscape|Materials", meta = (ToolTip = "Grass Material"))
-	UMaterialInterface* GrassMaterial;
+	UMaterialInterface* GrassMaterial = nullptr;
 	//===============================================================================================================
 
 	UPROPERTY(BlueprintReadOnly, meta = (Tooltip = "The local pawn for this client. Does not need to be changed by blueprints because it is automatically set at beginplay in c++."))
-	APawn* LocalClientPawn;
+	APawn* LocalClientPawn = nullptr;
 
 	UPROPERTY(EditAnywhere, Category = "Noise")
 	FNoiseSettings BasicLandNoiseSettings {
