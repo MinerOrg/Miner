@@ -114,18 +114,24 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "How far the chunk should go"))
 	double RenderDistance = 100.00f;
-  
-  UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "Height Scale of the Landscape"))
-	double HeightScale = 300.00f;
-  
-  UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "The amount to multiply the value of plate tectonics by."))
-	double PlateTectonicsHeightScale = 100;
-  
-  UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "How big the value of the cellular noise has to be inorder to count as a plate edge.", ClampMin = 0, ClampMax = 1))
-	double PlateBoarderThreshhold = 0.5;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "Height Scale of the Landscape"))
+	double HeightScale = 10.00f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "The amount to multiply the value of plate tectonics by."))
+	double PlateTectonicsHeightScale = 50;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "How big the value of the cellular noise has to be inorder to count as a plate edge.", ClampMin = 0, ClampMax = 1))
+	double PlateBoarderThreshhold = 0.0;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "How big the value of the cellular noise has to be inorder to count as a plate edge."))
-	int PlateBoarderCheckAttempts = 10;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "Max attempts to check for the master vertex."))
+	int MasterVertexCheckAttempts = 100;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "Min value for plate displacement."))
+	double MinPlateSpeed = 500;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "Max value for plate displacement."))
+	double MaxPlateSpeed = 1000;
 	//===============================================================================================================
 
 	//===============================================================================================================
