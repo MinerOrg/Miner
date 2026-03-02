@@ -102,7 +102,7 @@ protected:
 	FastNoiseLite* PlateTectonicsNoise = nullptr;
 
 	//===============================================================================================================
-	// Variables for landscape generation.
+	// Landscape Settings
 	UPROPERTY(EditDefaultsOnly, Category = "Landscape", meta = (ToolTip = "The number that controls all randomness"))
 	int Seed = 1337;
 
@@ -124,20 +124,23 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "How big the value of the cellular noise has to be inorder to count as a plate edge.", ClampMin = 0, ClampMax = 1))
 	double PlateBoarderThreshhold = 0.0;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "Max attempts to check for the master vertex."))
-	int MasterVertexCheckAttempts = 100;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "Max attempts to check for the master vertex. If less than 1, it just keeps going."))
+	int MasterVertexCheckAttempts = 1000;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "Min value for plate displacement."))
 	double MinPlateSpeed = 500;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "Max value for plate displacement."))
 	double MaxPlateSpeed = 1000;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "Max value for plate displacement."))
+	int MaxMasterVertexCacheSize = 10000;
 	//===============================================================================================================
 
 	//===============================================================================================================
 	// Materials for the landscape
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Landscape|Materials", meta = (ToolTip = "Grass Material"))
-	UMaterialInterface* GrassMaterial = nullptr;
+	TObjectPtr<UMaterialInterface> GrassMaterial = nullptr;
 	//===============================================================================================================
 
 	UPROPERTY(BlueprintReadOnly, meta = (Tooltip = "The local pawn for this client. Does not need to be changed by blueprints because it is automatically set at beginplay in c++."))

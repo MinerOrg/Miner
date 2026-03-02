@@ -1,6 +1,7 @@
 // Copyright Schuyler Zheng. All Rights Reserved.
 
 #include "WorldGenerationRunnable.h"
+#include <set>
 #include "WorldLandscape.h"
 #include "ThirdPartyLibraries/FastNoiseLite.h"
 
@@ -11,9 +12,6 @@ FWorldGenerationRunnable::FWorldGenerationRunnable(AWorldLandscape* WorldLandsca
 {
 	OwnerLandscape = WorldLandscape;
 	CurrentWorld = World;
-	LastRenderDistance = -1.0;
-	LocalClientPawnLocation = FVector3d::ZeroVector;
-	NumPointsPerLine = 0;
 	DynamicMesh = OwnerLandscape->AllocateComputeMesh();
 
 	Thread = FRunnableThread::Create(this, TEXT("World Generation Thread"));
@@ -70,8 +68,11 @@ void FWorldGenerationRunnable::GenerateDynamicMesh()
 
 	DynamicMesh->InitializeMesh();
 
+	// Empty arrays 
 	Verticies.Empty();
 	VertexHeights.Empty();
+
+	if (MasterVertexCache.Num() > OwnerLandscape->MaxMasterVertexCacheSize) MasterVertexCache.Empty();
 
 	// Local Client Pawn Location always changes
 	LocalClientPawnLocation = (CurrentWorld->IsGameWorld()) ? OwnerLandscape->LocalClientPawn->GetActorLocation() : FVector3d::ZeroVector;
@@ -88,6 +89,7 @@ void FWorldGenerationRunnable::GenerateDynamicMesh()
 
 	check(LastRenderDistance > 0);
 
+	// Run the terrain generation steps
 	GenerateBasicHeights();
 	ApplyPlateTectonics();
 	FinalizeLandMesh();
@@ -102,7 +104,7 @@ void FWorldGenerationRunnable::GenerateDynamicMesh()
 			// Broadcast that terrain data is ready (must be done on game thread?)
 			WeakWorldLandscapeReference->ApplyTerrainDataDelegate.Broadcast();
 		}
-		});
+	});
 }
 
 void FWorldGenerationRunnable::GenerateBasicHeights()
@@ -123,20 +125,21 @@ void FWorldGenerationRunnable::ApplyPlateTectonics()
 	ModifyHeightArray([&](FVector LocalVertexLocation) -> double {
 		double FinalHeight = LocalVertexLocation.Z;
 		FVector2D WorldVertexLocation = FVector2D(LocalVertexLocation.X + LocalClientPawnLocation.X / 50, LocalVertexLocation.Y + LocalClientPawnLocation.Y / 50);
-
+		
 		double CurrentNoiseValue = FMath::Abs(OwnerLandscape->PlateTectonicsNoise->GetNoise(WorldVertexLocation.X, WorldVertexLocation.Y));    // For some reason the noise can be negative, so make it absolute value
 		if (CurrentNoiseValue >= OwnerLandscape->PlateBoarderThreshhold) {
-			// Tmp
-			// FVector2d MasterVertexLocation = FindMasterVertexOfPlate(WorldVertexLocation;
-			// FVector2d MasterVertexLocation2 = FindMasterVertexOfPlate(WorldVertexLocation);    // IDK, fix this later
-			//EPlateDirection Plate1Direction = (EPlateDirection)FMath::RoundToInt32(FMath::Fmod(MasterPlateLocation.X * MasterPlateLocation.Y, 4.0f));    // Switch to frandomstream for this too
-			//EPlateDirection Plate2Direction = (EPlateDirection)FMath::RoundToInt32(FMath::Fmod(MasterPlateLocation.X * MasterPlateLocation.Y * 67, 4.0f));
-			FRandomStream RandomPlateSpeed1(2);    // In future change to Master Vertex Location
-			FRandomStream RandomPlateSpeed2(1);
-			double PlateSpeed1 = RandomPlateSpeed1.RandRange(OwnerLandscape->MinPlateSpeed, OwnerLandscape->MaxPlateSpeed);
-			double PlateSpeed2 = RandomPlateSpeed2.RandRange(OwnerLandscape->MinPlateSpeed, OwnerLandscape->MaxPlateSpeed);
+			bool KeepCheckingForNextPlateOver = true;
+			FPlateVertexLocations PlateVertexLocations = FindBothPlateVertexLocations(WorldVertexLocation);
+			FVector2d MasterVertexLocation1 = FindMasterVertexOfPlate(PlateVertexLocations.Plate1VertexLocation);
+			FVector2d MasterVertexLocation2 = FindMasterVertexOfPlate(PlateVertexLocations.Plate2VertexLocation);
+			FRandomStream Plate1RandomStream(MasterVertexLocation1.X * MasterVertexLocation1.Y);    // Not the best way of making a random seed for the random generator, but that is for later. 
+			FRandomStream Plate2RandomStream(MasterVertexLocation2.X * MasterVertexLocation2.Y);
+			EPlateDirection Plate1Direction = (EPlateDirection)Plate1RandomStream.RandRange(1, 4);    // Switch to frandomstream for this too
+			EPlateDirection Plate2Direction = (EPlateDirection)Plate2RandomStream.RandRange(1, 4);
+			double PlateSpeed1 = Plate1RandomStream.RandRange(OwnerLandscape->MinPlateSpeed, OwnerLandscape->MaxPlateSpeed);
+			double PlateSpeed2 = Plate2RandomStream.RandRange(OwnerLandscape->MinPlateSpeed, OwnerLandscape->MaxPlateSpeed);
 
-			switch (ArePlatesColliding(EPlateDirection::East, EPlateDirection::South))
+			switch (ArePlatesColliding(Plate1Direction, Plate2Direction))
 			{
 			case ECollisionType::Push:
 				FinalHeight += CurrentNoiseValue * OwnerLandscape->PlateTectonicsHeightScale * FMath::Fmod(PlateSpeed1 + PlateSpeed2, OwnerLandscape->MaxPlateSpeed);
@@ -224,30 +227,41 @@ FVector2D FWorldGenerationRunnable::FindMasterVertexOfPlate(FVector2D BoarderVer
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FindMasterVertexOfPlate);
 
+	if (MasterVertexCache.Contains(BoarderVertexLocation)) {
+		return MasterVertexCache[BoarderVertexLocation];
+	}
+
+	TSet<FVector2D> AttemptedPoints;
 	FVector2D MostTopLeftPoint = BoarderVertexLocation;
 	double StepDistance = OwnerLandscape->Resolution;
-	bool Done = false;
+	int IterationsDone = 0;
 
-	while (!Done) {
+	while (IterationsDone < OwnerLandscape->MasterVertexCheckAttempts || OwnerLandscape->MasterVertexCheckAttempts <= 0) {
+		IterationsDone++;
+		AttemptedPoints.Add(MostTopLeftPoint);
+
 		// Check up
-		for (int i = 0; i <= OwnerLandscape->MasterVertexCheckAttempts; i++) {
-			FVector2D CurrentLocation = FVector2D(MostTopLeftPoint.X, MostTopLeftPoint.Y + StepDistance * i);
-			if (double NoiseSample = OwnerLandscape->PlateTectonicsNoise->GetNoise(CurrentLocation.X, CurrentLocation.Y) >= OwnerLandscape->PlateBoarderThreshhold) {
-				i = 0;
-				MostTopLeftPoint = FVector2D(MostTopLeftPoint.X, MostTopLeftPoint.Y + StepDistance + i);
-				continue;
-			}
+		FVector2D CurrentLocation = FVector2D(MostTopLeftPoint.X, MostTopLeftPoint.Y + StepDistance);
+		if (double NoiseSample = OwnerLandscape->PlateTectonicsNoise->GetNoise(CurrentLocation.X, CurrentLocation.Y); NoiseSample >= OwnerLandscape->PlateBoarderThreshhold && IsNextToBlack(CurrentLocation)) {
+			MostTopLeftPoint = FVector2D(MostTopLeftPoint.X, MostTopLeftPoint.Y + StepDistance);
+			IterationsDone = 0;
+			continue;
 		}
 
 		// Check left
-		for (int i = 0; i <= OwnerLandscape->MasterVertexCheckAttempts; i++) {
-			FVector2D CurrentLocation = FVector2D(MostTopLeftPoint.X, MostTopLeftPoint.Y - StepDistance * i);
-			if (double NoiseSample = OwnerLandscape->PlateTectonicsNoise->GetNoise(CurrentLocation.X, CurrentLocation.Y) >= OwnerLandscape->PlateBoarderThreshhold) {
-				i = 0;
-				MostTopLeftPoint = FVector2D(MostTopLeftPoint.X - StepDistance - i, MostTopLeftPoint.Y);
-				continue;
-			}
+		CurrentLocation = FVector2D(MostTopLeftPoint.X - StepDistance, MostTopLeftPoint.Y);
+		if (double NoiseSample = OwnerLandscape->PlateTectonicsNoise->GetNoise(CurrentLocation.X, CurrentLocation.Y); NoiseSample >= OwnerLandscape->PlateBoarderThreshhold && IsNextToBlack(CurrentLocation)) {
+			MostTopLeftPoint = FVector2D(MostTopLeftPoint.X - StepDistance, MostTopLeftPoint.Y);
+			IterationsDone = 0;
+			continue;
 		}
+
+		// Could not find, so stop
+		break;
+	}
+
+	for (const FVector2D& AttemptedPoint : AttemptedPoints) {
+		MasterVertexCache.Add(AttemptedPoint, MostTopLeftPoint);
 	}
 
 	return MostTopLeftPoint;
@@ -259,4 +273,49 @@ ECollisionType FWorldGenerationRunnable::ArePlatesColliding(EPlateDirection Plat
 
 	// Tmp return push
 	return ECollisionType::Push;
+}
+
+FPlateVertexLocations FWorldGenerationRunnable::FindBothPlateVertexLocations(FVector2D Vertex)
+{
+	FPlateVertexLocations PlateVertexLocations;
+
+	return PlateVertexLocations;
+}
+
+bool FWorldGenerationRunnable::IsNextToBlack(FVector2D VertexLocation)
+{
+	if (OwnerLandscape->PlateTectonicsNoise->GetNoise(VertexLocation.X - OwnerLandscape->Resolution, VertexLocation.Y) < OwnerLandscape->PlateBoarderThreshhold) {
+		// Left
+		return true;
+	}
+	else if (OwnerLandscape->PlateTectonicsNoise->GetNoise(VertexLocation.X + OwnerLandscape->Resolution, VertexLocation.Y) < OwnerLandscape->PlateBoarderThreshhold) {
+		// Right
+		return true;
+	}
+	else if (OwnerLandscape->PlateTectonicsNoise->GetNoise(VertexLocation.X, VertexLocation.Y + OwnerLandscape->Resolution) < OwnerLandscape->PlateBoarderThreshhold) {
+		// Up
+		return true;
+	}
+	else if (OwnerLandscape->PlateTectonicsNoise->GetNoise(VertexLocation.X, VertexLocation.Y - OwnerLandscape->Resolution) < OwnerLandscape->PlateBoarderThreshhold) {
+		// Down
+		return true;
+	}
+	else if (OwnerLandscape->PlateTectonicsNoise->GetNoise(VertexLocation.X - OwnerLandscape->Resolution, VertexLocation.Y + OwnerLandscape->Resolution) < OwnerLandscape->PlateBoarderThreshhold) {
+		// Up Left
+		return true;
+	}
+	else if (OwnerLandscape->PlateTectonicsNoise->GetNoise(VertexLocation.X + OwnerLandscape->Resolution, VertexLocation.Y + OwnerLandscape->Resolution) < OwnerLandscape->PlateBoarderThreshhold) {
+		// Up Right
+		return true;
+	}
+	else if (OwnerLandscape->PlateTectonicsNoise->GetNoise(VertexLocation.X - OwnerLandscape->Resolution, VertexLocation.Y - OwnerLandscape->Resolution) < OwnerLandscape->PlateBoarderThreshhold) {
+		// Down Left
+		return true;
+	}
+	else if (OwnerLandscape->PlateTectonicsNoise->GetNoise(VertexLocation.X + OwnerLandscape->Resolution, VertexLocation.Y - OwnerLandscape->Resolution) < OwnerLandscape->PlateBoarderThreshhold) {
+		// Down Right
+		return true;
+	}
+
+	return false;
 }
