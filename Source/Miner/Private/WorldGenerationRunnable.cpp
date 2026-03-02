@@ -72,6 +72,8 @@ void FWorldGenerationRunnable::GenerateDynamicMesh()
 	Verticies.Empty();
 	VertexHeights.Empty();
 
+	if (MasterVertexCache.Num() > OwnerLandscape->MaxMasterVertexCacheSize) MasterVertexCache.Empty();
+
 	// Local Client Pawn Location always changes
 	LocalClientPawnLocation = (CurrentWorld->IsGameWorld()) ? OwnerLandscape->LocalClientPawn->GetActorLocation() : FVector3d::ZeroVector;
 
