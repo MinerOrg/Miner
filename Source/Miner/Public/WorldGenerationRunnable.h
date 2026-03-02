@@ -41,14 +41,12 @@ protected:
 	void FinalizeLandMesh();
 
 	void ModifyHeightArray(TFunctionRef<double(FVector)> ModifyFunc);
-
 	/**
 	* The master veretex is the most top left vertex, then if there are multiple, the highest
 	* It also has to connect to a black part of the main plate in order to count.
 	* This is nessesary so that a world generates the same everytime.
 	*/
 	FVector2D FindMasterVertexOfPlate(FVector2D BoarderLocation);
-
 	ECollisionType ArePlatesColliding(EPlateDirection Plate1Direction, EPlateDirection Plate2Direction);
 	FPlateVertexLocations FindBothPlateVertexLocations(FVector2D Vertex);
 	bool IsNextToBlack(FVector2D VertexLocation);
@@ -66,4 +64,6 @@ protected:
 	double LastRenderDistance = -1;
 	FVector LocalClientPawnLocation = FVector::ZeroVector;
 	int64 NumPointsPerLine = -1;
+
+	TMap<FVector2D, FVector2D> MasterVertexCache;
 };

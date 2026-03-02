@@ -1,6 +1,7 @@
 // Copyright Schuyler Zheng. All Rights Reserved.
 
 #include "WorldGenerationRunnable.h"
+#include <set>
 #include "WorldLandscape.h"
 #include "ThirdPartyLibraries/FastNoiseLite.h"
 
@@ -224,43 +225,41 @@ FVector2D FWorldGenerationRunnable::FindMasterVertexOfPlate(FVector2D BoarderVer
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FindMasterVertexOfPlate);
 
+	if (MasterVertexCache.Contains(BoarderVertexLocation)) {
+		return MasterVertexCache[BoarderVertexLocation];
+	}
+
+	TSet<FVector2D> AttemptedPoints;
 	FVector2D MostTopLeftPoint = BoarderVertexLocation;
 	double StepDistance = OwnerLandscape->Resolution;
 	int IterationsDone = 0;
 
-	while (IterationsDone < OwnerLandscape->MasterVertexCheckAttempts) {
-		bool Moved = false;
-		bool CouldNotFindTopPoint = false;
+	while (IterationsDone < OwnerLandscape->MasterVertexCheckAttempts || OwnerLandscape->MasterVertexCheckAttempts <= 0) {
+		IterationsDone++;
+		AttemptedPoints.Add(MostTopLeftPoint);
 
 		// Check up
 		FVector2D CurrentLocation = FVector2D(MostTopLeftPoint.X, MostTopLeftPoint.Y + StepDistance);
 		if (double NoiseSample = OwnerLandscape->PlateTectonicsNoise->GetNoise(CurrentLocation.X, CurrentLocation.Y); NoiseSample >= OwnerLandscape->PlateBoarderThreshhold && IsNextToBlack(CurrentLocation)) {
 			MostTopLeftPoint = FVector2D(MostTopLeftPoint.X, MostTopLeftPoint.Y + StepDistance);
-			Moved = true;
-		}
-
-		if (Moved) {
 			IterationsDone = 0;
 			continue;
 		}
-		else CouldNotFindTopPoint = true;
 
 		// Check left
-		CurrentLocation = FVector2D(MostTopLeftPoint.X, MostTopLeftPoint.Y - StepDistance);
+		CurrentLocation = FVector2D(MostTopLeftPoint.X - StepDistance, MostTopLeftPoint.Y);
 		if (double NoiseSample = OwnerLandscape->PlateTectonicsNoise->GetNoise(CurrentLocation.X, CurrentLocation.Y); NoiseSample >= OwnerLandscape->PlateBoarderThreshhold && IsNextToBlack(CurrentLocation)) {
 			MostTopLeftPoint = FVector2D(MostTopLeftPoint.X - StepDistance, MostTopLeftPoint.Y);
-			Moved = true;
-		}
-		else if (!CouldNotFindTopPoint) {
-			break;
-		}
-
-		if (Moved) {
 			IterationsDone = 0;
 			continue;
 		}
 
-		IterationsDone++;
+		// Could not find, so stop
+		break;
+	}
+
+	for (const FVector2D& AttemptedPoint : AttemptedPoints) {
+		MasterVertexCache.Add(AttemptedPoint, MostTopLeftPoint);
 	}
 
 	return MostTopLeftPoint;
