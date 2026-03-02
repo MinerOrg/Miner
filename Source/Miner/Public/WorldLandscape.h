@@ -125,7 +125,7 @@ protected:
 	double PlateBoarderThreshhold = 0.0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "Max attempts to check for the master vertex."))
-	int MasterVertexCheckAttempts = 100;
+	int MasterVertexCheckAttempts = 1000;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Landscape", meta = (ToolTip = "Min value for plate displacement."))
 	double MinPlateSpeed = 500;
